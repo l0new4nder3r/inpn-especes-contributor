@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Autoloading contents from INPN espèces</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+ 	<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <script type="text/javascript" src="autoInpn.js"></script>
+    <script type="text/javascript" src="common.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
+    <style></style>
+</head>
+<body>
+
+
+<script></script>
+
+
+
+<div class="menu">
+	<div class="contributor">
+		<input type="number" pattern="\d+" id="contributorId" placeholder="ID Contributeur" onblur="changeContributor()">
+		<div class="contributorDetails"></div>
+	</div>
+	<div onclick="loadSomeMore()" class="button">load some more</div>
+	<div onclick="loopLoading()" class="button" id="loadAll">load all</div>
+	<div onclick="cleanAll()" class="button" style="background-color: red;">clean all</div>
+	<div class="loadingProgress">
+		<span style="text-align: center;" class="numberValues"></span>/
+		<span style="text-align: center;" class="total">?</span>
+		<span style="text-align: center;" class="percent"> &nbsp; 0%</span>
+	</div>
+	<div class=sort>
+		Tri par:
+		<br/>
+		<input type="radio" id="dateModif" name="sort" value="dateModif" checked onchange="sortObs()">
+      	<label for="dateModif">Date de dernière modification</label>
+		<br/>
+		<input type="radio" id="dateCrea" name="sort" value="dateCrea" onchange="sortObs()">
+      	<label for="dateCrea">Date de création (descendante)</label>
+      	<br/>
+		<input type="radio" id="points" name="sort" value="points" onchange="sortObs()">
+      	<label for="points">Points (descendants)</label>
+	</div>
+	<div style="width: 9em;">
+		<p>Yo!</p>
+		<p>Scroll down to load some more.</p>
+	</div>
+	<div onclick="buildStats()" class="button">stats</div>
+</div>
+
+<div class="focus"></div>
+<div class="stats"></div>
+<div class="filter">
+	<div class="container"></div>
+</div>
+
+<div id="bottom"></div>
+</body>
+</html>
