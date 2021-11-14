@@ -1,0 +1,767 @@
+/* CSS used for "Consultation d'observations INPN espèces" static html file */
+
+
+    body {
+    	background-color: gainsboro;
+  		/*max-width: 1400px;*/
+  		margin: auto;
+  		font-size: small;
+  		font-style: inherit;
+  		font-family: Sans-serif;
+    }
+
+    .container {
+    	display: flex;
+  		flex-wrap: wrap;
+  		box-sizing: border-box;
+  		align-items: center;
+  		justify-content: center;
+    }
+
+    .obs {
+  		border-style: solid;
+  		border-width: medium;
+  		height: 30em;
+  		padding: 20px;
+  		background-color: white;
+  		text-align: center;
+  		margin: 20px 10px;
+  		/*box-shadow: 7px 5px 5px gray;*/
+  		width: 20%;
+    }
+
+    .obs:hover {
+        cursor: default;
+        box-shadow: 7px 5px 5px gray;
+        /*border-width: thin;*/
+    }
+
+    .obs > img {
+  		object-fit: cover;
+  		/*width: 275px;
+  		height: 175px;*/
+  		width: 100%;
+  		height: 50%;
+      cursor: pointer;
+    }
+
+    .obs > p {
+    	text-align: left;
+    }
+
+	/* Create four equal columns that floats next to each other */
+	.column {
+	    float: left;
+	    width: 25%;
+	}
+
+	/* couleur en fonction du statut de validation! */
+    /* 0 ERROR */
+    .status0 {
+    	color: red;
+    }
+    /* 1 init */
+    .status1 {
+    	color: goldenrod;
+    }
+    /* 2 photo traitée */
+    .status2 {
+    	color: orange;
+    }
+    /* 3 g gp traité */
+    .status3 {
+    	color: lightslategray;
+    }
+    /* 4 g o traité */
+    .status4 {
+    	color: midnightblue;
+    }
+    /* 5 validée */
+    .status5 {
+    	color: darkgreen;
+    }
+    /* 6 invalidée */
+    .status6 {
+    	color: deeppink;
+    }
+    /* erreur dans data, validation vide */
+    .status99 {
+      color: mediumvioletred;
+    }
+
+	.score {
+		position: relative;
+		top: -195px;
+		background-color: beige;
+		/*width: max-content;*/
+		padding: 2px;
+		border-style: solid;
+		border-width: thin;
+		border-radius: 4px;
+		filter: opacity(80%);
+		right: 2px;
+		float: right;
+		cursor: default;
+	}
+
+	.progress {
+		font-weight: bold;
+		font-style: italic;
+		float: initial;
+		/*bottom: 14px;*/
+		position: relative;
+	}
+
+	.progress :not(.done) {
+		opacity: 30%;
+	}
+
+	.details {
+		height: 40%;
+		text-align: left;
+    cursor: default;
+	}
+
+	h2:hover {
+    	text-shadow: 0px -0px 1px;
+	}
+
+	.focus {
+		/*width: 1400px;*/
+		width: 95%;
+		background-color: ghostwhite;
+		visibility: collapse;
+		position: fixed;
+		/*float: initial;*/
+		z-index: 1;
+		border-style: solid;
+		left: 2%;
+		height: 93%;
+		top: 2em;
+    /*overflow: scroll;*/
+	}
+
+  .popinTop {
+    height: 49px;
+    position: fixed;
+    width: inherit;
+    background-color: lightgreen;
+    z-index: 1001;
+  }
+
+  .popinTitle {
+    color: white;
+    font-size: large;
+    padding-left: 0.75em;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+    /*height: 4.75px;*/
+  }
+
+  .detailsContents,
+  .statsContents {
+      overflow: scroll;
+      height: inherit;
+      top: 46.5px;
+      position: relative;
+  }
+
+	/* Slideshow container */
+	.photos {
+	  /*max-width: 700px;*/
+	  position: relative;
+	  margin-left: 20px;
+	  width: 50%;
+	  height: 100%;
+    /*overflow: scroll;
+    margin-top: 3em;*/
+	}
+
+	/* Hide the images by default */
+	.mySlides {
+	  display: none;
+	  width: 100%;
+	  height: 100%;
+	}
+
+	.mySlides > img {
+		/*width: 700px;*/
+		/*object-fit: cover;*/
+		/*height: 600px;*/
+		min-height: 90%;
+		max-height: 90%;
+		max-width: 100%;
+		min-width: 100%;
+	}
+
+	/* Next & previous buttons */
+	.prev, .next {
+	  cursor: pointer;
+	  position: absolute;
+	  top: 50%;
+	  width: auto;
+	  margin-top: -22px;
+	  padding: 16px;
+	  color: white;
+	  font-weight: bold;
+	  font-size: 18px;
+	  transition: 0.6s ease;
+	  border-radius: 0 3px 3px 0;
+	  user-select: none;
+	}
+
+	/* Position the "next button" to the right */
+	.next {
+	  right: 0;
+	  border-radius: 3px 0 0 3px;
+	}
+
+	/* On hover, add a black background color with a little bit see-through */
+	.prev:hover, .next:hover {
+	  background-color: rgba(0,0,0,0.8);
+	}
+
+	/* Number text (1/3 etc) */
+	.numbertext {
+	  color: #f2f2f2;
+	  font-size: 12px;
+	  padding: 8px 12px;
+	  position: absolute;
+	  top: 20px;
+	  cursor: default;
+	}
+
+	/* Fading animation */
+	.fade {
+	  -webkit-animation-name: fade;
+	  -webkit-animation-duration: 1.5s;
+	  animation-name: fade;
+	  animation-duration: 1.5s;
+	}
+
+	@-webkit-keyframes fade {
+	  from {opacity: .4}
+	  to {opacity: 1}
+	}
+
+	@keyframes fade {
+	  from {opacity: .4}
+	  to {opacity: 1}
+	}
+
+	.button {
+	  background-color: #4CAF50; /* Green */
+	  border: none;
+	  color: white;
+	  padding: 0px 32px;
+	  text-align: center;
+	  text-decoration: none;
+	  font-size: 16px;
+	  /*float: right;*/
+	  display: flex;
+ 	  justify-content: center;
+	  align-items: center;
+	  height: 100%;
+    cursor: pointer;
+    width: 6em;
+	}
+
+  .redButton {
+	  background-color: red; /* Green */
+	  border: none;
+	  color: white;
+	  padding: 0px 32px;
+	  text-align: center;
+	  text-decoration: none;
+	  font-size: 16px;
+	  /*float: right;*/
+	  display: flex;
+ 	  justify-content: center;
+	  align-items: center;
+    height: 100%;
+    cursor: pointer;
+    width: 6em;
+	}
+
+	.tinyButton {
+	  background-color: #4CAF50; /* Green */
+	  border: none;
+	  color: white;
+	  padding: 15px 32px;
+	  text-align: center;
+	  text-decoration: none;
+	  font-size: 16px;
+	  /*float: right;*/
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 19px;
+	}
+
+  .redButton:hover,
+	.tinyButton:hover,
+	.button:hover {
+	    background-color: gray;
+	}
+
+	.img-magnifier-glass {
+	    position: absolute;
+	    border: 3px solid #000;
+	    border-radius: 50%;
+	    cursor: none;
+	    width: 100px;
+	    height: 100px;
+	    visibility: collapse;
+	}
+
+	.infos {
+		position: relative;
+		top: 20px;
+		float: right;
+		padding: 15px;
+		right: 150px;
+    /*overflow: scroll;
+    margin-top: 1em;*/
+	}
+
+	#map {
+		height: 200px;
+		width: 300px;
+	}
+
+	.validated {
+		float:right;
+		transform: rotate(10deg);
+	}
+
+	.toggleMagnify {
+		float: right;
+		position: relative;
+		top: 33px;
+		right: 27px;
+		color: black;
+		z-index: 1;
+		height: 21px;
+		width: 15px;
+		font-size: x-large;
+		opacity: 100%;
+	}
+
+	.toggleMagnify:hover {
+		cursor: zoom-in;
+	}
+
+	.scoreDetails {
+		left: 30px;
+		position: absolute;
+		width: 400px;
+	}
+
+	.statusComment {
+		font-style: italic;
+		position: relative;
+		width: 300px;
+	}
+
+	.linkMore {
+		font-size: large;
+		font-weight: bold;
+		font-style: italic;
+		font-family: sans-serif;
+		text-decoration: none;
+		cursor: help;
+		width: 300px;
+		display: block;
+	}
+
+	.obsComment {
+	    font-style: italic;
+	    position: relative;
+	    width: 300px;
+	}
+
+	.corrected {
+		color: red;
+		text-decoration: line-through;
+		cursor: help;
+	}
+
+	.contributor {
+		font-family: sans-serif;
+		/*position: absolute;*/
+		text-align: center;
+		width: 36em;
+		/*opacity: 60%;*/
+		/*border-style: solid;*/
+		background-color: beige;
+		/*height: 5em;*/
+		/*top: 0px;*/
+		/*display: block;*/
+		/*z-index: 1;*/
+    float: left;
+	}
+
+  .contributorDetails > img {
+    width: 118px;
+    float: left;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .pseudo {
+    padding: 0.5em;
+  }
+
+  .name {
+    padding: 0.5em;
+  }
+
+  .totalScore {
+    padding: 0.5em;
+  }
+
+  .choice {
+    display: block;
+    height: 4em;
+    /*top: 2em;*/
+    position: relative;
+    float: right;
+    border-top: solid black thin;
+    border-left: solid black thin;
+    padding: 1em;
+    background-color: ivory;
+    border-top-left-radius: 15px 15px;
+    box-shadow: -10px 10px 0px -3px black;
+  }
+
+	.contributor:hover {
+    	opacity: 100;
+    	transition: 1s ease;
+	}
+
+/*	.loadingProgress {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 5em;
+		padding: 0px 32px;
+	}*/
+
+	/* Chrome, Safari, Edge, Opera */
+	input::-webkit-outer-spin-button,
+	input::-webkit-inner-spin-button {
+	  -webkit-appearance: none;
+	  margin: 0;
+	}
+
+	/* Firefox */
+	input[type=number] {
+	  -moz-appearance: textfield;
+	}
+
+	input[type="number"]{
+	  width : 5em;
+	  border: 1px solid #333;
+	  box-sizing: border-box;
+    border: none;
+    text-align: center;
+    background-color: beige;
+	}
+
+  input[type="number"]:hover{
+    background-color: black;
+    color: white;
+  }
+
+	input:invalid {
+	  box-shadow: 0 0 5px 1px red;
+	}
+
+	input:focus:invalid {
+	  box-shadow: none;
+	}
+
+	.menu div:not(.contributor):not(.choice):not(.contributorDetails):not(.pseudo):not(.name):not(.totalScore):not(.sortBy) {
+	  float: left;
+	  /*display: block;*/
+	}
+
+  .sortBy {
+    padding: 0.3em;
+  }
+
+  .sort {
+    display: block;
+    color: white;
+    font-size: 16px;
+    padding-left: 1em;
+  }
+
+	.menu {
+    background-color: #4CAF50;
+		overflow: hidden;
+		height: 118px;
+	}
+
+  .filter {
+    /*cursor: unset;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;*/
+  }
+
+  body.noclick :not(#popup):not(#popup *){
+    pointer-events: none;
+  }
+
+	#bottom {
+		width: 100%;
+		transition: 2s;
+		height: 3em;
+		/*animation-name: bottomColorChange;*/
+	 	animation-duration: 4s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+	}
+
+	@keyframes bottomColorChange {
+	  0%   {background-color: red;}
+	  25%  {background-color: yellow;}
+	  50%  {background-color: blue;}
+	  100% {background-color: green;}
+	}
+
+  @keyframes backgroundChange{
+	  0%   {background: red;}
+	  25%  {background: yellow;}
+	  50%  {background: blue;}
+	  100% {background: green;}
+	}
+
+	.stats {
+		/*width: 1400px;*/
+		width: 95%;
+		background-color: ghostwhite;
+		visibility: collapse;
+		position: fixed;
+		/*float: initial;*/
+		z-index: 1;
+		border-style: solid;
+		left: 2%;
+		height: 90%;
+		top: 2em;
+		/*padding-left: 10px;*/
+		/*overflow: auto;*/
+	}
+
+	.progressDetails {
+		font-weight: bold;
+		font-style: italic;
+		position: absolute;
+		top: 0%;
+	}
+
+	.progressDetails :not(.done) {
+		opacity: 30%;
+	}
+
+	.canvas {
+		/*width: 400px;*/
+		height: 250px;
+		/*left: 50%;*/
+		/*position: relative;*/
+		/*top: -15em;*/
+    padding: 3em;
+    background-color: ivory;
+	}
+
+  .canvas > h4 {
+    text-align: center;
+    font-style: italic;
+  }
+
+  .taxon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    /*box-shadow: 3px -1px 10px gray;*/
+    padding: 2px;
+    float: right;
+    right: 1em;
+    position: relative;
+    top: -53%;
+    background-color: white;
+    opacity: 80%;
+    /*filter: grayscale(100%);*/
+    color: transparent;
+    text-shadow: 0 0 0 darkgray;
+  }
+
+  .meter {
+      height: 10px;
+      position: relative;
+      background: #f3efe6;
+      overflow: hidden;
+  }
+
+  .meter span {
+      display: block;
+      height: 100%;
+  }
+
+  .progressMeter {
+      background-color: #e4c465;
+      -webkit-animation: progressBar 3s ease-in-out;
+      -webkit-animation-fill-mode:both;
+      -moz-animation: progressBar 3s ease-in-out;
+      -moz-animation-fill-mode:both;
+  }
+
+  @-webkit-keyframes progressBar {
+    0% { width: 0; }
+    100% { width: 100%; }
+  }
+
+  @-moz-keyframes progressBar {
+    0% { width: 0; }
+    100% { width: 100%; }
+  }
+
+  .meter:hover .progressMeter {
+    background-color: violet;
+  }
+
+  /*.statsContents {
+      overflow: auto;
+      height: 100%;
+      display: block;
+  }*/
+
+  .statsLeft {
+    width: 50%;
+    float: left;
+  }
+
+  .statsLeft > * {
+      margin: auto;
+      width: 500px;
+  }
+
+  .statsLeftContents{
+  }
+
+  .statsRight {
+    width: 50%;
+    float: left;
+  }
+
+  .statsRight > * {
+      margin: auto;
+      width: 500px;
+  }
+
+  .statsIntro {
+    padding-left: 5%;
+  }
+
+  .statsIntro > p {
+    font-style: italic;
+    color: red;
+  }
+
+  .statsLegend {
+    font-style: italic;
+    padding: 2em;
+    text-align: end;
+  }
+
+  .leftFilters{
+  	border-top-right-radius: 10px;
+    border-bottom-left-radius:10px;
+    border-bottom-right-radius:10px;
+    border-color: mediumspringgreen;
+    border-style:ridge;
+    padding: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 30px;
+    background-color: whitesmoke;
+  	font-family:sans-serif;
+  	position:fixed;
+    top: 33%;
+    left: -5.75em;
+    font-size: 20px;
+    width: 5em;
+    transition:ease-in-out;
+    transition-duration: 1s;
+  }
+
+  .leftFilters:hover{
+    left: 0%;
+    transition:ease-in-out;
+    transition-duration: 1s;
+    box-shadow: 12px 12px 15px -5px black;
+  }
+
+  .filterText{
+    font-size: medium;
+  }
+
+  .filterGroup > input,
+  .filterGroup > br { /* * */
+    /*visibility: collapse;*/
+    cursor: pointer;
+    display: none;
+  }
+
+  .filterGroup > label{
+    /*visibility: collapse;*/
+    cursor: pointer;
+  }
+
+  .filterGroup:hover > label {
+    visibility: visible;
+    display: contents;
+    /*opacity: 1;*/
+  }
+
+  input[type="checkbox"]/*:not([type="radio"]):not([type="number"])*/:not(:checked)+label {
+    color: transparent;
+    text-shadow: 0px 0px 2px orangered;
+  }
+
+  /*input[type="checkbox"]:not([type="radio"]):not([type="number"]):checked+label {
+    font-weight: bold;
+  }*/
+
+  .help{
+    width: 66%;
+    height: 85%;
+    background-color: whitesmoke;
+    border-style: solid;
+    border-width: thin;
+    position: fixed;
+    left: 16%;
+    z-index: 4;
+    padding: 2em;
+    top: 3%;
+    visibility: collapse;
+    overflow: scroll;
+    box-shadow: 10px -8px 15px -8px black;
+  }
+
+  .helpContents {
+    width: 80%;
+    margin: auto;
+    text-align: justify;
+    padding-top: 3em;
+    padding-bottom: 3em;
+  }
+
+  .helpContents img {
+    vertical-align: middle;
+  }

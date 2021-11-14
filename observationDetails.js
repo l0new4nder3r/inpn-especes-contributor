@@ -1,3 +1,5 @@
+/* Everything about displaying the details of a selected observation */
+
 
 async function showDetails(idData){
 	// get current observation
@@ -9,39 +11,24 @@ async function showDetails(idData){
 	});
 
 	// get score details
-	var scoreDetails;
-	
-	async function getScoreDetails(id) {
-	    try {
-	        let res = await fetch(`https://inpn.mnhn.fr/inpn-web-services/inpnespece/score/iddata/${id}`);
-			scoreDetails = await res.json();
-	    } catch (error) {
-	        console.log('No score details found for observation id '+id);
-	    }
-	}
-	
-	await getScoreDetails(idData);
+	var scoreDetailsUrl = `https://inpn.mnhn.fr/inpn-web-services/inpnespece/score/iddata/${idData}`;
+	var scoreDetails = await callAndWaitForJsonAnswer(scoreDetailsUrl);
 
 	// get validation details
-	var validationHistory;
-	async function getValidationHistory(id) {
-		try {
-	        let res = await fetch(`https://inpn.mnhn.fr/inpn-web-services/inpnespece/validation/data/${id}/historique`);
-			validationHistory = await res.json();
-	    } catch (error) {
-	        console.log('No validation history found for observation id '+id);
-	    }
-	}
-	// TODO useless for now ?
-
-	//await getValidationHistory(idData);
-	if(validationHistory!=null){
-		//console.log(validationHistory[0].commentaire);
-	}
+	// useless for now, we have the latest info in the observation...
+	//var validationHistoryUrl = `https://inpn.mnhn.fr/inpn-web-services/inpnespece/validation/data/${idData}/historique`;
+	// var validationHistory = await callAndWaitForJsonAnswer(validationHistoryUrl);
+	// if(validationHistory!=null){
+	// 	//console.log(validationHistory[0].commentaire);
+	// }
 
 	// make some content for "focus" placeholder
-    let focus = document.querySelector('.focus');
-	let newClassAttributes = `focus status${chosenObs.validation.idStatus}`;
+  let focus = document.querySelector('.focus');
+	var validStatus='99';
+	if(chosenObs.validation!=null&&chosenObs.validation.idStatus!=null){
+		validStatus=chosenObs.validation.idStatus;
+	}
+	let newClassAttributes = `focus status${validStatus}`;
 	focus.setAttribute("class", newClassAttributes);
 	let validated = '';
 	if(chosenObs.isValidated=='true'){
@@ -49,14 +36,14 @@ async function showDetails(idData){
 						<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Icons8_flat_approval.svg/32px-Icons8_flat_approval.svg.png">
 					</div>`;
 	}
-	
+
 	let correctedName = '';
 	if(chosenObs.isCorrected=='true' && chosenObs.taxonOrigin.nomCompletOrigin!=''){
 		correctedName=`<a class="corrected" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.taxonOrigin.cdNomOrigin}" target="_blank">
 							${chosenObs.taxonOrigin.nomCompletOrigin}
 						</a>`;
 	}
-	
+
 	let statusComment='';
 	if(chosenObs.validation!=null && chosenObs.validation.StatusComment!=null){
 		statusComment=`<div class="statusComment">${chosenObs.validation.StatusComment}</div>`;
@@ -64,11 +51,15 @@ async function showDetails(idData){
 	let titleLink = '';
 	let nomComplet = chosenObs.nomComplet;
 	if(nomComplet==''){
-		nomComplet="???";
+		nomComplet="-";
 		titleLink=`<h3>${nomComplet}</h3>`;
 	} else {
 		if(chosenObs.cdNom!=0){
-			titleLink= `<a class="linkMore status${chosenObs.validation.idStatus}" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.cdNom}" target="_blank">
+			var validStatus='99';
+			if(chosenObs.validation.idStatus!=null){
+				validStatus=chosenObs.validation.idStatus;
+			}
+			titleLink= `<a class="linkMore status${validStatus}" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.cdNom}" target="_blank">
 							${nomComplet}
 						</a>`;
 		} else {
@@ -83,20 +74,23 @@ async function showDetails(idData){
 		commentaire=`<div class="obsComment">"${chosenObs.commentaire}"</div>`;
 	}
 
-    let html = `<div onclick="hideDetails()" class="tinyButton">X</div>
-    			<div class="infos">
-  					${validated}
-					${titleLink}
-					${correctedName}
-					${statusComment}
-    				<p>${chosenObs.lbGroupSimple}</p>
-    				<p style="position: relative;width: 300px;">${chosenObs.nomCommuns}</p>
-    				<div id="map"></div>
-    				<p style="font-style:italic;">${chosenObs.commune} (${chosenObs.numDepartement}), le ${creationDate}</p>
-					${commentaire}
-					<p>${chosenObs.scoreTotal} points</p>`;
-					
-	
+  let html = `<div class="popinTop">
+								<div class="popinTitle">Détails de l'observation n°${chosenObs.idData}</div>
+								<div onclick="hideDetails()" class="tinyButton">X</div>
+							</div>
+							<div class="detailsContents">
+			  				<div class="infos">
+								${validated}
+								${titleLink}
+								${correctedName}
+								${statusComment}
+			  				<p>${chosenObs.lbGroupSimple}</p>
+			  				<p style="position: relative;width: 300px;">${chosenObs.nomCommuns}</p>
+			  				<div id="map"></div>
+			  				<p style="font-style:italic;">${chosenObs.commune} (${chosenObs.numDepartement}), le ${creationDate}</p>
+								${commentaire}
+								<p>${chosenObs.scoreTotal} points</p>`;
+
 	// preparing score details
 	let scoresHtml=`<div class="scoreDetails">`;
 	if(scoreDetails!=null){
@@ -110,52 +104,53 @@ async function showDetails(idData){
 	scoresHtml+=`</div>`;
 	html +=scoresHtml;
 	// adding the progress part again
-	html+=`<div title="${chosenObs.validation.lbStatus}" class="progressDetails">`;
+	var validLabel='Erreur de données, validation vide';
+	if(chosenObs.validation.lbStatus!=null){
+		validLabel=chosenObs.validation.lbStatus;
+	}
+
+	html+=`<div title="${validLabel}" class="progressDetails">`;
 	html+=buildProgress(chosenObs.validation.idStatus);
 	html+=`</div>`;
 	// and end the infos div
 	html +=`</div>`;
 	//let's deal with the pictures now...
-    html += `<div class="photos">`;
-    let cpt = 1;
-    // make the photos and their wrappers
-    chosenObs.photos.forEach(photo=>{
-    	let magnifierId='';
-    	if (cpt==1) {
-    		// init, magnifier on first image
-    		magnifierId=`id="magnify"`;
-    	}
-    	html +=`<div class="mySlides fade">
-    				<div class="numbertext">${cpt} / ${chosenObs.photos.length}</div>
-    				<div onclick="toggleMagnify();" class="toggleMagnify">&#x1F50D;</div>   
-				   	<img ${magnifierId} src="${photo.inpnFileUri}" >
-				</div>`;
-    	cpt++;
-    });
-    // add the links for the slideshow
-    html += `<a class="prev" onclick="plusSlides(-1)">&#10094;</a>
-    					<a class="next" onclick="plusSlides(1)">&#10095;</a>
-    					</div>`;
-	
-    focus.innerHTML = html;
-    // make this visible
-    focus.style.visibility='visible';
-    // and make the filter visible too
-    let filter = document.querySelector('.filter');
-    filter.style.filter='blur(5px) grayscale(60%)';
-    showSlides(slideIndex);    
+  html += `<div class="photos">`;
+  let cpt = 1;
+  // make the photos and their wrappers
+  chosenObs.photos.forEach(photo=>{
+  	let magnifierId='';
+  	if (cpt==1) {
+  		// init, magnifier on first image
+  		magnifierId=`id="magnify"`;
+  	}
+  	html +=`<div class="mySlides fade">
+  				<div class="numbertext">${cpt} / ${chosenObs.photos.length}</div>
+  				<div onclick="toggleMagnify();" class="toggleMagnify">&#x1F50D;</div>
+			   	<img ${magnifierId} onclick="toggleCoverContain(this)" src="${photo.inpnFileUri}" style="object-fit: cover;">
+			</div>`;
+  	cpt++;
+  });
+  // add the links for the slideshow
+  html += `<a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+  					<a class="next" onclick="plusSlides(1)">&#10095;</a>
+  					</div>
+					</div>`;
 
-    // erreur, c'est inversé?! wtf
-    displayMap(chosenObs.Y,chosenObs.X);
+  focus.innerHTML = html;
+  // make this visible
+  focus.style.visibility='visible';
+	focus.id='popup';
+	blurBackground();
 
-	// prevent scrolling ?
-   	document.documentElement.style.overflow = 'hidden';
-   	document.body.scroll = "no";
+  showSlides(slideIndex);
+
+  // erreur, c'est inversé?! wtf
+  displayMap(chosenObs.Y,chosenObs.X);
 
 }
 
-
-
+/* code taken from w3school examples */
 function magnify(imgID, zoom) {
 	  var img, glass, w, h, bw;
 	  img = document.getElementById(imgID);
@@ -234,9 +229,9 @@ function displayMap(x,y){
 
 function toggleMagnify(){
 	// turning off / magnifier / toggleMagnifier
-	
+
     let magnifier = document.querySelector('.img-magnifier-glass');
-    
+
     if(magnifier!=null){
     	//turn off
     	magnifier.remove();
@@ -260,12 +255,13 @@ function hideDetails(){
 		document.querySelector('.photos').remove();
 	}
 	// hiding the "focus" part
-    let focus = document.querySelector('.focus');
-    focus.style.visibility='collapse';
-    // hiding the filter too
-    let filter = document.querySelector('.filter');
-    filter.style.filter='none';
-    slideIndex=1;
+  let focus = document.querySelector('.focus');
+  focus.style.visibility='collapse';
+	focus.id='';
+	focus.innerHTML='';
+	unblurBackground();
+
+  slideIndex=1;
 	// removing magnifiers
 	if(document.querySelector('.toggleMagnify')!=null){
 		document.querySelector('.toggleMagnify').remove();
@@ -273,16 +269,11 @@ function hideDetails(){
 	if(document.querySelector('.img-magnifier-glass')!=null){
 		document.querySelector('.img-magnifier-glass').remove();
 	}
-    
-	// re allow scrolling
- 	document.documentElement.style.overflow = 'scroll';
- 	document.body.scroll = "yes";
-
 }
 
 var slideIndex = 1;
 
-// Next/previous controls, images slideshow
+/* code taken from w3school examples */
 function plusSlides(n) {
 	// clean magnifying glass
 	if(document.querySelector('.img-magnifier-glass')!=null){
@@ -320,6 +311,13 @@ function showSlides(n) {
 	  // deactivate left/right arrows
 	  document.querySelector('.prev').style.visibility='collapse';
 	  document.querySelector('.next').style.visibility='collapse';
-  } 
+  }
 }
 
+function toggleCoverContain(image){
+	if(image.style.objectFit=='cover'){
+		image.style.objectFit='contain';
+	} else {
+		image.style.objectFit='cover';
+	}
+}

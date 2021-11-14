@@ -2,7 +2,7 @@
 
 ## Introduction
 
-_This web app is meant to be a presentation overlay for the "INPN Espèces" service (an official french application to help determine species from photographs, and aggragate data about their presence in France). For this reason, the contents of this readme file are in french_
+_This web app is meant to be a presentation overlay for the "INPN Espèces" service (an official french application to help determine species from photographs, and aggregate data about their presence in France). For this reason, the contents of this readme file are in french_
 
 La consultation de l'application smartphone INPN espèces / détermin'Obs, ou du site web correspondant étant souvent très lente et peu pratique pour s'y retrouver dans les observations soumises et leurs statuts de validation, voici une tentative d'interface permettant de retrouver toutes les observations d'un user donné (par son ID) et surtout de pouvoir naviguer aisément dans les résultats et statistiques des observations, sans attente autre que celle d'un chargement initial.
 
@@ -31,39 +31,31 @@ Des statistiques sur la personne contributrice et les observations chargées son
 
 - revoir et améliorer l'interface:
   - responsive page principale tablette ou smartphone (@media css?)
-  - responsive page détails
+  - responsive popin détails
+  - responsive popin de stats
   - page de stats à rendre plus sexy
     - graphiques à revoir, libellé, couleurs?
-    - deux colonnes ou une seule si pas la place?
-    - ordre des items à revoir
-  - responsive page de stats
-  - stats accessibles par clic icone contributeur?
-  - fenetre d'accueil avec infos en arrivant! possible de la retrouver avec bouton aide?
-    - bienvenue, intro
-    - ...
-    - app pur web, rien de stocké côté serveur, etc etc.
-    - lien vers github dedans?
-    - infos lib utilisées, leaflet, char.js ...
-    - mail de contact
 
-- ajout info groupe général / opérationnel, icones page principale, page détails
-- filtre (tiroir caché à gauche?) sur groupes opérationnels
+- Déployer sur nbuchon.me/inpn/ (test OK, code matomo js Ok)
 
-- tris des observations : possibilité de jouer montant/descendant?
+- Static map ids/values des groupes opérationnels?
 
-- stats : ajouter obs par groupe opérationnel ou général?
+- infos pour les espèces protégées, en danger? Savoir si une est en danger ou pas par exemple, infos dans le détail d'une obs. API clic détail obs.
 
-- code : refactoring!
-- code : optimisations (une seule itération stats?)
-- code : un seul fichier js!
+- favicon ! Quoi mettre?
 
-- FIX : souci de chargement KO si loadAll changement de contributeur?
+- tris des observations : possibilité de jouer montant/descendant? Interface? Flèches haut/bas?
 
-- décompiler appli android pour chercher traces autres API/filtres/tri?
-  - une API existe-t-elle avec un tri par modification possible?
+- Si erreur, timeout? gestion des soucis de connexion. messages, etc?
 
-- sélection d'un contributeur autrement? Nom, liste/rang?
+- code : optimisations (une seule itération dans les stats?). utile?!
 
-- mode connecté? intérêt, données en plus?
+- FIX : prévenir les doublons au chargement si soucis de connexion ou quoi... if avant de push
+  => map globale? id en clef, obj en valeur. push dedans si pas id seulement...?
+  => ok pour itérations? index à revoir au passage?
 
-- possibilité de garder des observations en "fav" pour un user donné, stockage local ou cookie?
+- sélection d'un contributeur autrement? Nom, liste/rang? Pas trouvé comment?
+
+- possibilité de garder des infos, stockage local ou cookie?
+  - observations en "fav" pour un user donné
+  - date de dernière modif, une fois tout chargé, possibilité de pastilles si mises à jour?

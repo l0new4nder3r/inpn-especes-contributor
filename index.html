@@ -2,14 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Autoloading contents from INPN espèces</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Consultation d'observations INPN espèces</title>
+    <link rel="stylesheet" href="inpn.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
- 	<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
-    <script type="text/javascript" src="autoInpn.js"></script>
-    <script type="text/javascript" src="common.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
-    <style></style>
+ 	  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <script type="text/javascript" src="inpn.js"></script>
+    <script type="text/javascript" src="observationDetails.js"></script>
+    <script type="text/javascript" src="contributorStats.js"></script>
+	  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
+    <!--link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"-->
+    <meta name="author" content="Nicolas Buchon">
+    <meta name="description" content="HTML/CSS/JavaScript overlay to INPN espèces">
+  	<meta name="keywords" content="INPN, MHNH, détermin'obs, INPN espèces, visualisation, observations, contributeur, contribution">
+    <!-- Matomo -->
+    <script>
+      var _paq = window._paq = window._paq || [];
+      /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="https://www.nbuchon.me/matomo/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    <!-- End Matomo Code -->
 </head>
 <body>
 
@@ -20,40 +39,138 @@
 
 <div class="menu">
 	<div class="contributor">
-		<input type="number" pattern="\d+" id="contributorId" placeholder="ID Contributeur" onblur="changeContributor()">
-		<div class="contributorDetails"></div>
+    <div class="contributorDetails"></div>
+    <div class="choice">
+        <span>Choisir un&middot;e autre contributeur&middot;ice : </span>
+        <input type="number" pattern="\d+" id="contributorId" placeholder="ID Contributeur" onblur="changeContributor()">
+    </div>
 	</div>
-	<div onclick="loadSomeMore()" class="button">load some more</div>
-	<div onclick="loopLoading()" class="button" id="loadAll">load all</div>
-	<div onclick="cleanAll()" class="button" style="background-color: red;">clean all</div>
-	<div class="loadingProgress">
-		<span style="text-align: center;" class="numberValues"></span>/
-		<span style="text-align: center;" class="total">?</span>
-		<span style="text-align: center;" class="percent"> &nbsp; 0%</span>
-	</div>
+	<!--div onclick="loadSomeMore()" class="button">Charger plus d'observations</div-->
+	<div onclick="loopLoading()" class="button" id="loadAll">Tout charger</div>
+	<div onclick="cleanAll()" class="redButton">Réinitialiser</div>
 	<div class=sort>
-		Tri par:
-		<br/>
-		<input type="radio" id="dateModif" name="sort" value="dateModif" checked onchange="sortObs()">
-      	<label for="dateModif">Date de dernière modification</label>
-		<br/>
-		<input type="radio" id="dateCrea" name="sort" value="dateCrea" onchange="sortObs()">
+		<div class="sortBy"> Trier par :</div>
+		<div class="sortBy">
+      <input type="radio" id="dateModif" name="sort" value="dateModif" checked onchange="sortObs()">
+      <label for="dateModif">Date de dernière modification</label>
+    </div>
+    <div class="sortBy">
+		    <input type="radio" id="dateCrea" name="sort" value="dateCrea" onchange="sortObs()">
       	<label for="dateCrea">Date de création (descendante)</label>
-      	<br/>
-		<input type="radio" id="points" name="sort" value="points" onchange="sortObs()">
+    </div>
+    <div class="sortBy">
+		    <input type="radio" id="points" name="sort" value="points" onchange="sortObs()">
       	<label for="points">Points (descendants)</label>
+    </div>
 	</div>
-	<div style="width: 9em;">
-		<p>Yo!</p>
-		<p>Scroll down to load some more.</p>
-	</div>
-	<div onclick="buildStats()" class="button">stats</div>
+  <div onclick="showHelp()" style="float: right;" class="button">A propos</div>
 </div>
 
+<div class="meter">
+  <span id="percentage" style="width:0%;"><span class="progressMeter"></span></span>
+</div>
+
+<div class="help">
+  <div class="helpContents">
+      <h2>Bienvenue</h2>
+      <p>Cet outil permet de charger et de consulter toutes les observations d'un&middot;e contributeur&middot;trice de l'application <a href="https://determinobs.fr" title="Déterminobs" target="_blank"><img alt="INPN Espèces Logo, Déterminobs Logo" height="32" src="https://determinobs.fr/assets/imgs/logo-inpn.png">déterminobs</a> de l'<a href="https://inpn.mnhn.fr/informations/inpn-especes" target="_blank">INPN</a>, et d'en afficher des statistiques.</p>
+      <p>Utilisateur enthousiaste, malheureusement frustré, parfois, par les applications mobiles et web existantes, j'ai codé cette page pour avoir une vue synoptique de mes contributions. Elle me permet de retrouver aisément (une fois tout chargé, ce qui peut prendre un peu de temps) mes observations triées par dernière date de modification, notamment.</p>
+      <p>Comme elle m'est utile, je me suis dit que je pouvais la rendre publique, pour qu'elle puisse éventuellement servir à d'autres.</p>
+      <p>Cette page a été imaginée, codée et sera maintenue sur mon temps libre. Il s'agit d'une <span style="font-style:italic;font-weight:bold;">initiative personnelle</span>, qui, je l'espère, ne gênera ni ne causera de tort à l'INPN ou à ses contributeurs&middot;trices.</p>
+      <br/>
+      <h2>Utilisation</h2>
+      <p>Lors de la première consultation, des observations de mon compte se chargent. Il est possible de changer de personne en entrant un autre identifiant (trouvable sur le <a href="https://determinobs.fr/#/home" title="determinobs.fr" target="_blank">site officiel</a> une fois connecté, dans l'URL) dans le champ prévu à cet effet.</p>
+      <p>En naviguant, une fois le bas de la page atteint, l'application va charger plus de résultats si le total max n'a pas été atteint. Cliquer sur "Tout charger" lance une récupération des observations par lots de 16, en boucle, jusqu'au total.</p>
+      <p>Cette application ne nécessite pas d'être connecté à son compte INPN.</p>
+      <p>Des mécanismes de tri et de filtres basiques peuvent être appliqués sur les observations chargées.</p>
+      <p>Le détail d'une observation s'ouvre par un clic. Il est possible de défiler ses photos.</p>
+      <p>Les statistiques d'utilisation sont accessibles par un clic sur l'image de profil de la personne sélectionnée.</p>
+      <p>L'interface est loin d'être parfaite ; il me faudrait travailler sur la compatibilité mobile/tablette, revoir l'UX/UI (ce qui n'est pas mon fort). Des bugs plus ou moins gênants peuvent persister, je m'en excuse - n'hésitez pas à me faire signe si vous utilisez cet outil et que vous souhaiteriez que je corrige des choses !</p>
+      <br/>
+      <h2>Aspects techniques</h2>
+      <p>Cette application est "pure Web" (HTML, CSS, VanillaJS) - rien n'est stocké côté serveur. Elle utilise les APIs (sans authentification) publiques du site officiel, directement dans votre navigateur.</p>
+      <p>Un cookie sera déposé sur votre navigateur si vous changez mon identifiant pour un autre (pour en garder la trace, et éviter de devoir changer le mien à chaque visite).</p>
+      <p>Un suivi basique est opéré avec <a href="https://fr.matomo.org/" target="_blank"><img alt="Matomo Logo" title="Matomo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Matomo_Logo.svg/128px-Matomo_Logo.svg.png"></a> (comme sur le reste de mon site), afin de d'avoir une idée du nombre de visites de cette page.</p>
+      <p>Ce site perso est auto-hébergé sur un vieux <a href="https://www.raspberrypi.com/products/raspberry-pi-2-model-b/" title="Raspberry Pi" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/fr/3/3b/Raspberry_Pi_logo.svg" alt="Raspberry Pi logo.svg" width="25"></a>. Il est possible qu'il soit de temps en temps inaccessible.</p>
+      <p>Le code source est accessible directement depuis votre navigateur. Il est aussi sauvegardé sur <a href="https://github.com/l0new4nder3r/inpn-especes-contributor" title="Github" target="_blank"><img alt="github logo" width="32" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/64px-Octicons-mark-github.svg.png"></a>, et sera accessible quand j'aurais rendu public le repository.</p>
+      <p>J'essaye de privilégier les outils en "Open Source". La bibliothèque pour les cartes est <a href="https://leafletjs.com/" title="Leaflet" target="_blank"><img height="32" alt="Leaflet logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Leaflet_logo.svg/320px-Leaflet_logo.svg.png?uselang=fr"></a>, celle pour les graphiques est <a href="https://www.chartjs.org/" title="Chart.js" target="_blank"><img alt="Chart.js logo" width="32" src="https://avatars.githubusercontent.com/u/10342521?s=200&v=4"></a>.</p>
+      <p>Du code d'exemples de <a href="https://www.w3schools.com/" title="W3Schools" target="_blank"><img height="32" alt="W3Schools logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/W3Schools_logo.svg/32px-W3Schools_logo.svg.png"></a>, ou issu de la documentation de <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" title="Mozilla" target="_blank"><img height="32" alt="MDN Web Docs" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/MDN_Web_Docs.svg/219px-MDN_Web_Docs.svg.png"></a> est utilisé ici et là.</p>
+      <br/>
+      <h2>Contact</h2>
+      <p>En cas de besoin, vous pouvez me contacter ici (ôter les accolades et espaces) : n {.} buchon {@} free {.} fr</p>
+      <p>Vous pouvez retrouver ces informations via le bouton "A propos".</p>
+      <br/>
+      <div class="button" style="margin: auto;height: 4em;" onclick="closeHelp()">Fermer cette fenêtre</div>
+    </div>
+</div>
 <div class="focus"></div>
 <div class="stats"></div>
 <div class="filter">
-	<div class="container"></div>
+  <div class="container"></div>
+</div>
+<div class=leftFilters>
+
+  <div>
+    <h4>Filtres</h4>
+    <div class="filterGroup">
+      <div class="filterText">Groupes opérationnels</div>
+      <input type="checkbox" checked id="111" onchange='filterObsGo(this)'>
+      <label for="111" title="Escargots et autres mollusques">&#128012;</label>
+      <br/>
+      <input type="checkbox" checked id="148" onchange='filterObsGo(this)'>
+      <label for="148" title="Oiseaux">&#128038;</label>
+      <br/>
+      <input type="checkbox" checked id="154" onchange='filterObsGo(this)'>
+      <label for="154" title="Mammifères">&#129418;</label>
+      <br/>
+      <input type="checkbox" checked id="158" onchange='filterObsGo(this)'>
+      <label for="158" title="Poissons">&#128031;</label>
+      <br/>
+      <input type="checkbox" checked id="501" onchange='filterObsGo(this)'>
+      <label for="501" title="Champignons et lichens">&#127812;</label>
+      <br/>
+      <input type="checkbox" checked id="502" onchange='filterObsGo(this)'>
+      <label for="502" title="Crabes, crevettes, cloportes et mille-pattes">&#129408;</label>
+      <br/>
+      <input type="checkbox" checked id="504" onchange='filterObsGo(this)'>
+      <label for="504" title="Insectes et araignées">&#129419;</label>
+      <br/>
+      <input type="checkbox" checked id="505" onchange='filterObsGo(this)'>
+      <label for="505" title="Plantes, mousses et fougères">&#127807;</label>
+      <br/>
+      <input type="checkbox" checked id="506" onchange='filterObsGo(this)'>
+      <label for="506" title="Amphibiens et reptiles">&#128013;</label>
+      <br/>
+      <input type="checkbox" checked id="24222202" onchange='filterObsGo(this)'>
+      <label for="24222202" title="Autres">&#8230;</label>
+    </div>
+    <br/>
+    <div class="filterGroup">
+      <div class="filterText">Statuts de validation</div>
+      <input type="checkbox" checked id="0" onchange='filterObsStatus(this)'>
+      <label for="0" title="error">⚠️</label>
+      <br/>
+      <input type="checkbox" checked id="1" onchange='filterObsStatus(this)'>
+      <label for="1" title="Initialisation">▶️</label>
+      <br/>
+      <input type="checkbox" checked id="2" onchange='filterObsStatus(this)'>
+      <label for="2" title="Photographie traitée">&#128248;</label>
+      <br/>
+      <input type="checkbox" checked id="3" onchange='filterObsStatus(this)'>
+      <label for="3" title="Groupe grand public traité">&#128213;</label>
+      <br/>
+      <input type="checkbox" checked id="4" onchange='filterObsStatus(this)'>
+      <label for="4" title="Groupe opérationnel traité">&#128215;</label>
+      <br/>
+      <input type="checkbox" checked id="5" onchange='filterObsStatus(this)'>
+      <label for="5" title="Espèce validée">&#9989;</label>
+      <br/>
+      <input type="checkbox" checked id="6" onchange='filterObsStatus(this)'>
+      <label for="6" title="Observation invalidée">&#10060;</label>
+      <br/>
+    </div>
+  </div>
+  <br/>
 </div>
 
 <div id="bottom"></div>
