@@ -1,5 +1,17 @@
 /* Everything about displaying the details of a selected observation */
 
+// from https://fr.wikipedia.org/wiki/Statut_de_conservation
+const conservationsStatuses = new Map();
+conservationsStatuses.set('EX','Éteint');
+conservationsStatuses.set('EW','Éteint à l\'état sauvage');
+conservationsStatuses.set('CR','En danger critique');
+conservationsStatuses.set('EN','En danger');
+conservationsStatuses.set('VU','Vulnérable');
+conservationsStatuses.set('NT','Quasi menacé');
+conservationsStatuses.set('LC','Préoccupation mineure');
+conservationsStatuses.set('DD','Données insuffisantes');
+conservationsStatuses.set('NE','Non évalué');
+
 
 async function showDetails(idData){
 	// get current observation
@@ -9,10 +21,6 @@ async function showDetails(idData){
 			chosenObs = obs;
 		}
 	});
-
-	// get score details
-	var scoreDetailsUrl = `https://inpn.mnhn.fr/inpn-web-services/inpnespece/score/iddata/${idData}`;
-	var scoreDetails = await callAndWaitForJsonAnswer(scoreDetailsUrl);
 
 	// get validation details
 	// useless for now, we have the latest info in the observation...
@@ -83,6 +91,7 @@ async function showDetails(idData){
 								${validated}
 								${titleLink}
 								${correctedName}
+								<div class="protectionStatus"></div>
 								${statusComment}
 			  				<p>${chosenObs.lbGroupSimple}</p>
 			  				<p style="position: relative;width: 300px;">${chosenObs.nomCommuns}</p>
@@ -91,17 +100,8 @@ async function showDetails(idData){
 								${commentaire}
 								<p>${chosenObs.scoreTotal} points</p>`;
 
-	// preparing score details
-	let scoresHtml=`<div class="scoreDetails">`;
-	if(scoreDetails!=null){
-		scoreDetails.scoresHistorique.reverse();
-		scoreDetails.scoresHistorique.forEach(score=>{
-			let dateCrea=new Date(score.dateCrea).toLocaleString();
-	        let htmlSegment = `<div title="${dateCrea}"><div style="font-style:italic;">${score.causes} : ${score.score} points</div></div>`;
-			scoresHtml+=htmlSegment;
-		});
-	}
-	scoresHtml+=`</div>`;
+	// preparing scores placeholder
+	let scoresHtml=`<div class="scoreDetails"></div>`;
 	html +=scoresHtml;
 	// adding the progress part again
 	var validLabel='Erreur de données, validation vide';
@@ -141,6 +141,8 @@ async function showDetails(idData){
   // make this visible
   focus.style.visibility='visible';
 	focus.id='popup';
+	focus.style.cursor="progress";
+
 	blurBackground();
 
   showSlides(slideIndex);
@@ -148,6 +150,56 @@ async function showDetails(idData){
   // erreur, c'est inversé?! wtf
   displayMap(chosenObs.Y,chosenObs.X);
 
+	// get score details
+	var scoreDetailsUrl = `${inpnUrlBase}score/iddata/${idData}`;
+	var scoreDetails = await callAndWaitForJsonAnswer(scoreDetailsUrl);
+	if(scoreDetails==null){
+		console.log('L\'observation id '+idData+' n\'a pas (encore?) de détail de score');
+	}
+
+	// inserting score details
+	let scoresHtmlContents='';
+	if(scoreDetails!=null){
+		scoreDetails.scoresHistorique.reverse();
+		scoreDetails.scoresHistorique.forEach(score=>{
+			let dateCrea=new Date(score.dateCrea).toLocaleString();
+			scoresHtmlContents+=`<div title="${dateCrea}"><div style="font-style:italic;">${score.causes} : ${score.score} points</div></div>`;
+		});
+	}
+	document.querySelector('.scoreDetails').innerHTML=scoresHtmlContents;
+
+	// protected and red list statuses?
+	if(chosenObs.cdRef!=null){
+		var protectionStatusesUrl = `https://odata-inpn.mnhn.fr/taxa/${chosenObs.cdRef}`;
+		var protectionStatuses = await callAndWaitForJsonAnswer(protectionStatusesUrl);
+		if(protectionStatuses==null){
+			console.log('Erreur lors de l\'appel aux statuts de protection');
+		} else {
+			if(protectionStatuses.statuses!=null){
+				if(protectionStatuses.statuses.includes('RED_LIST')){
+					var redListToolTip='';
+					var redListDetailsUrl = `https://odata-inpn.mnhn.fr/taxa/redLists/entries?taxrefId=${chosenObs.cdRef}&scopes=NATIONAL&embed=RED_LIST`;
+					var redListDetails = await callAndWaitForJsonAnswer(redListDetailsUrl);
+					if(redListDetails==null){
+						console.log('Erreur lors de l\'appel aux détails de liste rouge');
+					} else {
+						if(redListDetails._embedded!=null&&redListDetails._embedded.redListEntries!=null&&redListDetails._embedded.redListEntries[0]!=null&&redListDetails._embedded.redListEntries[0].category!=null){
+							if(conservationsStatuses.get(redListDetails._embedded.redListEntries[0].category)!=null){
+								redListToolTip=conservationsStatuses.get(redListDetails._embedded.redListEntries[0].category);
+							} else {
+								redListToolTip=redListDetails._embedded.redListEntries[0].category;
+							}
+						}
+					}
+					document.querySelector('.protectionStatus').innerHTML+=`<div title="${redListToolTip}">Espèce sur liste rouge</div>`;
+				}
+				if(protectionStatuses.statuses.includes('PROTECTED')){
+					document.querySelector('.protectionStatus').innerHTML+='<div style="font-weight:bold;">Espèce protégée</div>';
+				}
+			}
+		}
+	}
+	focus.style.cursor="unset";
 }
 
 /* code taken from w3school examples */
@@ -221,8 +273,7 @@ function displayMap(x,y){
 	    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 	    maxZoom: 18,
 	    tileSize: 256,
-	    zoomOffset: 0,
-	    accessToken: 'your.mapbox.access.token'
+	    zoomOffset: 0
 	}).addTo(mymap);
 	L.marker([x, y]).addTo(mymap);
 }
@@ -235,15 +286,15 @@ function toggleMagnify(){
     if(magnifier!=null){
     	//turn off
     	magnifier.remove();
-        let toggleMagnifier = document.querySelector('.toggleMagnify');
-        toggleMagnifier.style.visibility='visible';
+      let toggleMagnifier = document.querySelector('.toggleMagnify');
+      toggleMagnifier.style.visibility='visible';
     } else {
     	//turn on
-        magnify("magnify", 3);
-        magnifier = document.querySelector('.img-magnifier-glass');
-        magnifier.style.visibility='visible';
-        let toggleMagnifier = document.querySelector('.toggleMagnify');
-        toggleMagnifier.style.visibility='collapse';
+      magnify("magnify", 3);
+      magnifier = document.querySelector('.img-magnifier-glass');
+      magnifier.style.visibility='visible';
+      let toggleMagnifier = document.querySelector('.toggleMagnify');
+      toggleMagnifier.style.visibility='collapse';
     }
 }
 
@@ -282,11 +333,11 @@ function plusSlides(n) {
 	// remove id to previous image
 	document.getElementById('magnify').removeAttribute('id');
 	// display the slides
-  	showSlides(slideIndex += n);
+	showSlides(slideIndex += n);
 	// add magnify id to current img : get divs with class mySlides
 	var slides = document.getElementsByClassName("mySlides");
 	// find the one with display:block;
-  	let currentSlide;
+	let currentSlide;
 	for (const slide of slides) {
 	  if(slide.style.display=='block'){
 	    currentSlide=slide;

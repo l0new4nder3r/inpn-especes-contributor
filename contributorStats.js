@@ -22,7 +22,7 @@ async function buildStats(){
 
 async function showStats(){
 
-	if(USER_ID!=null && latestObs!=null && listObservations != null && contrib!=null){
+	if(USER_ID!=null && latestObs!=null && listObservations != null && currentContributor!=null){
 		// make some content for "stats" placeholder
     let stats = document.querySelector('.stats');
 
@@ -34,7 +34,7 @@ async function showStats(){
 
 		// bouton de fermeture, titre
     stats.innerHTML = `<div class="popinTop">
-													<div class="popinTitle">Statistiques de ${contrib.pseudo}</div>
+													<div class="popinTitle">Statistiques de ${currentContributor.pseudo}</div>
 													<div onclick="hideStats()" class="tinyButton">X</div>
 												</div>
 											<div class="statsContents">
@@ -53,7 +53,7 @@ async function showStats(){
 		// score moyen, min ,max
 		let averageGlobal=0;
 		if(latestObs.totLines!=0){
-			averageGlobal = (contrib.ScoreTotal/latestObs.totLines).toFixed(0);
+			averageGlobal = (currentContributor.ScoreTotal/latestObs.totLines).toFixed(0);
 		}
 		let min = listObservations.observations[0].scoreTotal;
 		let max = 0;
@@ -96,12 +96,15 @@ async function showStats(){
 
 			async function getRankInfo() {
 					let rankInfo = await callAndWaitForJsonAnswer(urlRank);
+					if(rankInfo==null){
+						alert('Erreur lors du chargement du nombre de personnes. Veuillez réessayer ultérieurement');
+					}
 					contributorsTotal = rankInfo.totLines;
 			}
 			await getRankInfo();
 		}
 
-		leftStatsContents.innerHTML+=`<p>Rang : ${contrib.rang}<sup>e</sup> sur ${contributorsTotal} contributeurs&middot;trices</p>`;
+		leftStatsContents.innerHTML+=`<p>Rang : ${currentContributor.rang}<sup>e</sup> sur ${contributorsTotal} contributeurs&middot;trices</p>`;
 
 		/* nombre validés mais corrigés */
 		let corrected = 0;

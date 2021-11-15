@@ -31,22 +31,38 @@ Des statistiques sur la personne contributrice et les observations chargées son
 
 - revoir et améliorer l'interface:
   - responsive page principale tablette ou smartphone (@media css?)
+    - ipad Air : menu KO, obs hauteur ko (largeur x3 bof) filters ko
+    - obs : si écran large, découpage en 4 sinon en 2 ?
   - responsive popin détails
+    - ipad air : ko
   - responsive popin de stats
+    - ipad air : ko graphs cassés
   - page de stats à rendre plus sexy
     - graphiques à revoir, libellé, couleurs?
-
-- Déployer sur nbuchon.me/inpn/ (test OK, code matomo js Ok)
 
 - Static map ids/values des groupes opérationnels?
 
 - infos pour les espèces protégées, en danger? Savoir si une est en danger ou pas par exemple, infos dans le détail d'une obs. API clic détail obs.
+  => ajouter détail en dur https://fr.wikipedia.org/wiki/Statut_de_conservation
 
-- favicon ! Quoi mettre?
+- espèce "rare"? Moins de x sur determinobs? (possible?)
+
+- animation de chargement : quelque chose de plus heureux dans la barre de progression
 
 - tris des observations : possibilité de jouer montant/descendant? Interface? Flèches haut/bas?
 
+- retour en haut si défile bas... <a href="#"></a>
+
+- loupe : correction si image clippée?
+
+- stats :
+  - pourcentage d'erreur dans le temps? "amélioration" ou pas?
+  - propositions de noms d'espèces (si augmente ou pas) dans le temps
+  - propositions et erreurs par go ?
+
 - Si erreur, timeout? gestion des soucis de connexion. messages, etc?
+  - alert "Les APIs de l'INPN semblent mettre du temps à répondre. Réessayez ultérieurement"
+  - test fetch avec timeout de 15s!
 
 - code : optimisations (une seule itération dans les stats?). utile?!
 
@@ -56,6 +72,10 @@ Des statistiques sur la personne contributrice et les observations chargées son
 
 - sélection d'un contributeur autrement? Nom, liste/rang? Pas trouvé comment?
 
+- gestion param/url/précédent?
+
 - possibilité de garder des infos, stockage local ou cookie?
   - observations en "fav" pour un user donné
   - date de dernière modif, une fois tout chargé, possibilité de pastilles si mises à jour?
+
+- PWA ?

@@ -7,7 +7,7 @@ var latestObs;
 // global list of observations to gather
 var listObservations;
 // contributor info
-var contrib;
+var currentContributor;
 // index current loading page
 let index;
 // is loading on?
@@ -15,6 +15,8 @@ var isMoreLoadingOn=false;
 var isLoopLoadingOn=false;
 // observer bottom page
 var observer;
+// filtres affiché
+var areFiltersDisplayed=false;
 
 function initInputKeyPress(){
 	// Get the input field
@@ -54,10 +56,10 @@ function getCookie(cname) {
 }
 
 async function checkContributorCookie() {
-  let contributor = getCookie("contributorId");
-  if (contributor != "") {
-   console.log("Will use cookie value of contributorId: " + contributor);
-	 USER_ID = contributor;
+  let contributorId = getCookie("contributorId");
+  if (contributorId != "") {
+   console.log("Will use cookie value of contributorId: " + contributorId);
+	 USER_ID = contributorId;
   }
 }
 
@@ -77,7 +79,8 @@ window.onload = function() {
 async function loadAll(){
 	initInputKeyPress();
 	await checkContributorCookie();
-
+	inactivateBtn('allGo');
+	inactivateBtn('allStat');
 	var helpClosed = await checkHelpCookie();
 	if(helpClosed!=null && helpClosed!='true'){
 		showHelp();
@@ -95,43 +98,48 @@ async function loadAll(){
 
 async function callAndWaitForJsonAnswer(url) {
 		try {
-				let res = await fetch(url);
-				return await res.json();
+			let res = await fetchWithTimeout(url);
+			return await res.json();
 		} catch (error) {
+			if(error.name === 'AbortError'){
+				console.log('Call to '+url+' timed out');
+			} else {
 				console.log('Got error: '+error + ' ...for url: '+url);
+			}
 		}
 }
 
 async function loadContributor(){
-	let userId = USER_ID;
 	// url to load contributo info
-	const urlContributor=inpnUrlBase+"contributor/"+userId;
+	const urlContributor=inpnUrlBase+"contributor/"+USER_ID;
 	console.log('loading contributor info from: '+urlContributor);
 
 	async function renderContributor() {
-		let contributor = await callAndWaitForJsonAnswer(urlContributor);
-    // let contributor = await getContributor();
-    contrib = contributor;
+		currentContributor = await callAndWaitForJsonAnswer(urlContributor);
+
+		if(currentContributor==null){
+			alert('Erreur lors du chargement pour l\'ID '+USER_ID);
+		}
+
     let html = '';
-    let htmlSegment = `<img onclick="buildStats()" title="Statistiques" alt="contributor profile picture" src="${contrib.avatar}">
-					   <div class="pseudo">${contrib.pseudo}</div>
-						 <div class="name">${contrib.prenom} ${contrib.nom}</div>
-					   <div class="totalScore">${contrib.ScoreTotal} points</div>`;
+    let htmlSegment = `<img onclick="buildStats()" title="Statistiques" alt="contributor profile picture" src="${currentContributor.avatar}">
+					   <div class="pseudo">${currentContributor.pseudo}</div>
+						 <div class="name">${currentContributor.prenom} ${currentContributor.nom}</div>
+					   <div class="totalScore">${currentContributor.ScoreTotal} points</div>`;
 		html += htmlSegment;
 
     html += '</div>';
     let container = document.querySelector('.contributorDetails');
     container.innerHTML = html;
     let input = document.getElementById('contributorId');
-		input.value=userId;
+		input.value=USER_ID;
 	}
 	await renderContributor();
 }
 
 async function loadLatestObs(){
-	let userId = USER_ID;
 	//url to load latest observation
-	const urlLatestObservation=inpnUrlBase+"data?paginStart=1&paginEnd=1&idUtilisateur="+userId;
+	const urlLatestObservation=inpnUrlBase+"data?paginStart=1&paginEnd=1&idUtilisateur="+USER_ID;
 	console.log('loading latest obs from: '+urlLatestObservation);
 
 	async function renderLatestObs() {
@@ -142,7 +150,9 @@ async function loadLatestObs(){
 		    console.log("latestObs is set!");
 		    listObservations = observation;
 				renderProgress();
-	    }
+	    } else {
+				alert('Erreur lors du chargement de la première observation. Veuillez réessayer ultérieurement');
+			}
 		await renderObs();
 	}
 	await renderLatestObs();
@@ -161,7 +171,7 @@ function renderProgress(){
 		percentage = (size/latestObs.totLines*100).toFixed(0);
 	}
 
-	if(contrib!=null){
+	if(currentContributor!=null){
 		let percentBar = document.getElementById('percentage');
 		percentBar.style.width=(percentage+'%');
 		let meter = document.querySelector('.meter');
@@ -172,14 +182,16 @@ function renderProgress(){
 async function getAndAddAllObservations(url) {
 		let observation = await callAndWaitForJsonAnswer(url);
 		// add all
+		if(observation==null){
+			alert('Erreur lors du chargement des observations. Veuillez réessayer ultérieurement');
+		}
 		listObservations.observations.push(...observation.observations);
 		renderProgress();
 }
 
 async function loopLoading(){
-	let userId = USER_ID;
 	// loop load for current userId
-	console.log('Attempt at loop loading for: '+userId);
+	console.log('Attempt at loop loading for: '+USER_ID);
 
 	if(latestObs!=null){
 
@@ -192,16 +204,13 @@ async function loopLoading(){
 				// stop it!
 				isLoopLoadingOn = false;
 				// turn "load all" button to "pause"
-				buttonLoadAll.innerHTML = 'Tout charger';
+				buttonLoadAll.innerHTML = 'Charger les observations';
 			} else {
 				isLoopLoadingOn=true;
 				// turn "load all" button to "pause"
 				buttonLoadAll.innerHTML = '(mettre en pause)';
 				buttonLoadAll.style.fontStyle='italic';
-				buttonLoadAll.style.animationName='bottomColorChange';
-				buttonLoadAll.style.animationDuration='4s';
-				buttonLoadAll.style.animationIterationCount='infinite';
-				buttonLoadAll.style.animationDirection='alternate';
+
 				let meter = document.querySelector('.progressMeter');
 				meter.style.animationName='backgroundChange';
 				meter.style.animationDuration='4s';
@@ -217,7 +226,7 @@ async function loopLoading(){
 							paginEnd=latestObs.totLines;
 						}
 						let paginStart = index+1;
-						let obsUrl=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+userId;
+						let obsUrl=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+USER_ID;
 						console.log('loop : loading obs from '+obsUrl);
 
 						await getAndAddAllObservations(obsUrl);
@@ -230,9 +239,9 @@ async function loopLoading(){
 				}
 				isLoopLoadingOn=false;
 				// turn "load all" button to "pause"
-				buttonLoadAll.innerHTML = 'Tout charger';
+				buttonLoadAll.innerHTML = 'Charger les observations';
 				buttonLoadAll.style.fontStyle='unset';
-				buttonLoadAll.style.animation='unset';
+				// buttonLoadAll.style.animation='unset';
 				meter.style.animation='unset';
 			}
 		}
@@ -240,9 +249,8 @@ async function loopLoading(){
 }
 
 async function loadSomeMore(){
-	let userId = USER_ID;
 	// loop load for current userId
-	console.log('Attempt at more loading for: '+userId);
+	console.log('Attempt at more loading for: '+USER_ID);
 
 	if(latestObs!=null && !isMoreLoadingOn && !isLoopLoadingOn){
 
@@ -259,7 +267,7 @@ async function loadSomeMore(){
 			if(paginEnd>latestObs.totLines){
 				paginEnd=latestObs.totLines;
 			}
-			let obsUrl=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+userId;
+			let obsUrl=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+USER_ID;
 			console.log('loadMore : loading obs from '+obsUrl);
 
 			await getAndAddAllObservations(obsUrl);
@@ -465,7 +473,6 @@ function sortByModificationLatest(observations){
 	return observations;
 }
 
-
 function sortByCreationLatest(observations){
 	console.log("Ordering observations...");
 	if(observations!=null){
@@ -502,7 +509,6 @@ function sortByPoints(observations){
 	return observations;
 }
 
-
 function changeContributor(){
 	// getting input from field
 	let userId = document.getElementById('contributorId').value;
@@ -511,7 +517,7 @@ function changeContributor(){
 		if(USER_ID!=null &&USER_ID!=userId){
 			USER_ID = userId;
 			reinit();
-			contrib=null;
+			currentContributor=null;
 			// keeping this value for 10 days max
 			setCookie("contributorId", userId, 10);
 			loadAll();
@@ -589,6 +595,117 @@ function filterObs(prefix,checkbox){
 			div.style.display='none';
 		});
 	}
+
+	// check if we need to desactivate buttons
+	var checkboxes= document.querySelectorAll('.'+prefix);
+	var areAllOn = true;
+	var areAllOff = true;
+	checkboxes.forEach(checkbox=>{
+		if(areAllOn){
+			if(!checkbox.checked){
+				areAllOn=false;
+			}
+		}
+		if(areAllOff){
+			if(checkbox.checked){
+				areAllOff=false;
+			}
+		}
+	});
+
+	var allBtnId='';
+	var noneBtnId='';
+	if(prefix=='status'){
+		allBtnId='allStat';
+		noneBtnId='noneStat';
+	} else {
+		allBtnId='allGo';
+		noneBtnId='noneGo';
+	}
+
+	if(areAllOn){
+		inactivateBtn(allBtnId);
+		activateBtn(noneBtnId);
+	} else if(areAllOff){
+		inactivateBtn(noneBtnId);
+		activateBtn(allBtnId);
+	} else {
+		// some on some off
+		activateBtn(allBtnId);
+		activateBtn(noneBtnId);
+	}
+}
+
+function allGo(){
+	toggleAllFilters(true,'go');
+	inactivateBtn('allGo');
+	activateBtn('noneGo');
+}
+
+function noneGo(){
+	toggleAllFilters(false,'go');
+	inactivateBtn('noneGo');
+	activateBtn('allGo');
+}
+
+function allStat(){
+	toggleAllFilters(true,'status');
+	inactivateBtn('allStat');
+	activateBtn('noneStat');
+}
+
+function noneStat(){
+	toggleAllFilters(false,'status');
+	inactivateBtn('noneStat');
+	activateBtn('allStat');
+}
+
+function inactivateBtn(id){
+	document.getElementById(id).style.backgroundColor='gray';
+	document.getElementById(id).style.pointerEvents='none';
+}
+
+function activateBtn(id){
+	document.getElementById(id).style.backgroundColor='#4CAF50';
+	document.getElementById(id).style.pointerEvents='unset';
+}
+
+function toggleAllFilters(turnOn,prefix){
+	var checkboxes= document.querySelectorAll('.'+prefix);
+	var change = false;
+	checkboxes.forEach(checkbox=>{
+		if(turnOn){
+			if(!checkbox.checked){
+				checkbox.checked=true;
+				if(!change){
+					change=true;
+				}
+			}
+		} else {
+			if(checkbox.checked){
+				checkbox.checked=false;
+				if(!change){
+					change=true;
+				}
+			}
+		}
+	});
+	if(change) {
+		// refresh
+		renderObs();
+	}
+}
+
+function toggleLeftFilters(){
+	if(areFiltersDisplayed){
+		areFiltersDisplayed=false;
+		document.querySelector('.leftFilters').style='';
+		document.getElementById('toggleLeftFilters').innerHTML='Afficher les filtres';
+	} else {
+		areFiltersDisplayed=true;
+		document.querySelector('.leftFilters').style.left='0';
+		document.getElementById('toggleLeftFilters').innerHTML='Masquer les filtres';
+	}
 }
 
 function blurBackground() {
@@ -624,4 +741,18 @@ function closeHelp(){
 	unblurBackground();
 	document.querySelector('.help').style.visibility="collapse";
 	document.querySelector('.help').id='';
+}
+
+/* taken here https://dmitripavlutin.com/timeout-fetch-request/ */
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 15000 } = options;
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal
+  });
+  clearTimeout(id);
+  return response;
 }

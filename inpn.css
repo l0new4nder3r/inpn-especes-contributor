@@ -303,7 +303,8 @@
 
   .redButton:hover,
 	.tinyButton:hover,
-	.button:hover {
+	.button:hover,
+  .filterBtn:hover {
 	    background-color: gray;
 	}
 
@@ -389,6 +390,14 @@
 		cursor: help;
 	}
 
+  .protectionStatus {
+      padding-left: 1em;
+      font-style: italic;
+      font-size: small;
+      color: orangered;
+      padding-top: 0.3em;
+  }
+
 	.contributor {
 		font-family: sans-serif;
 		/*position: absolute;*/
@@ -413,10 +422,13 @@
 
   .pseudo {
     padding: 0.5em;
+    font-size: larger;
   }
 
   .name {
     padding: 0.5em;
+    font-style: italic;
+    font-size: small;
   }
 
   .totalScore {
@@ -431,9 +443,17 @@
     float: right;
     border-top: solid black thin;
     border-left: solid black thin;
-    padding: 1em;
+    padding: 0.5em;
     background-color: ivory;
     border-top-left-radius: 15px 15px;
+    box-shadow: -8px 5px 5px 0px black;
+    right: -6em;
+    transition:ease-in-out;
+    transition-duration: 1s;
+  }
+
+  .choice:hover {
+    right: 0em;
     box-shadow: -10px 10px 0px -3px black;
   }
 
@@ -692,7 +712,7 @@
     background-color: whitesmoke;
   	font-family:sans-serif;
   	position:fixed;
-    top: 33%;
+    top: 25%;
     left: -5.75em;
     font-size: 20px;
     width: 5em;
@@ -727,6 +747,31 @@
     visibility: visible;
     display: contents;
     /*opacity: 1;*/
+  }
+
+  .filterBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    font-size: 14px;
+    background-color: #4CAF50;
+    border: thin black outset;
+    color: white;
+    width: 3em;
+    padding: 0.1em;
+  }
+
+  .filterBtn:active {
+    border: thin black inset;
+  }
+
+  .btns {
+    display: flex;
+    margin-top: 5px;
   }
 
   input[type="checkbox"]/*:not([type="radio"]):not([type="number"])*/:not(:checked)+label {
