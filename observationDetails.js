@@ -185,13 +185,14 @@ async function showDetails(idData){
 					} else {
 						if(redListDetails._embedded!=null&&redListDetails._embedded.redListEntries!=null&&redListDetails._embedded.redListEntries[0]!=null&&redListDetails._embedded.redListEntries[0].category!=null){
 							if(conservationsStatuses.get(redListDetails._embedded.redListEntries[0].category)!=null){
-								redListToolTip=conservationsStatuses.get(redListDetails._embedded.redListEntries[0].category);
+								redListToolTip='Echelle nationale: '+conservationsStatuses.get(redListDetails._embedded.redListEntries[0].category);
 							} else {
 								redListToolTip=redListDetails._embedded.redListEntries[0].category;
 							}
+							document.querySelector('.protectionStatus').title=`${redListToolTip}`;
 						}
 					}
-					document.querySelector('.protectionStatus').innerHTML+=`<div title="${redListToolTip}">Espèce sur liste rouge</div>`;
+					document.querySelector('.protectionStatus').innerHTML+=`<div>Espèce sur liste rouge</div>`;
 				}
 				if(protectionStatuses.statuses.includes('PROTECTED')){
 					document.querySelector('.protectionStatus').innerHTML+='<div style="font-weight:bold;">Espèce protégée</div>';

@@ -1,5 +1,8 @@
 /* CSS used for "Consultation d'observations INPN espèces" static html file */
 
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
     	background-color: gainsboro;
@@ -16,6 +19,7 @@
   		box-sizing: border-box;
   		align-items: center;
   		justify-content: center;
+      min-height: 90vh;
     }
 
     .obs {
@@ -255,10 +259,10 @@
 	  background-color: #4CAF50; /* Green */
 	  border: none;
 	  color: white;
-	  padding: 0px 32px;
+	  padding: 0px 16px;
 	  text-align: center;
 	  text-decoration: none;
-	  font-size: 16px;
+	  font-size: 15px;
 	  /*float: right;*/
 	  display: flex;
  	  justify-content: center;
@@ -402,7 +406,8 @@
 		font-family: sans-serif;
 		/*position: absolute;*/
 		text-align: center;
-		width: 36em;
+		/*width: 36em;*/
+    width: 30em;
 		/*opacity: 60%;*/
 		/*border-style: solid;*/
 		background-color: beige;
@@ -414,7 +419,8 @@
 	}
 
   .contributorDetails > img {
-    width: 118px;
+    /*width: 118px;*/
+    width: 5em;
     float: left;
     position: relative;
     cursor: pointer;
@@ -423,21 +429,27 @@
   .pseudo {
     padding: 0.5em;
     font-size: larger;
+    float: inline-start;
+    padding-left: 2em;
   }
 
-  .name {
+  /* .name {
     padding: 0.5em;
+    font-style: italic;
+    font-size: small;
+  } */
+
+  .totalScore {
+    padding: 0.5em;
+    float: inline-end;
+    padding-right: 2em;
     font-style: italic;
     font-size: small;
   }
 
-  .totalScore {
-    padding: 0.5em;
-  }
-
   .choice {
     display: block;
-    height: 4em;
+    height: 2em;
     /*top: 2em;*/
     position: relative;
     float: right;
@@ -452,7 +464,7 @@
     transition-duration: 1s;
   }
 
-  .choice:hover {
+  .choice:hover:not(#loadAll) {
     right: 0em;
     box-shadow: -10px 10px 0px -3px black;
   }
@@ -511,19 +523,21 @@
 
   .sortBy {
     padding: 0.3em;
+    font-size: small;
   }
 
-  .sort {
+  /* .sort {
     display: block;
     color: white;
     font-size: 16px;
     padding-left: 1em;
-  }
+  } */
 
 	.menu {
     background-color: #4CAF50;
 		overflow: hidden;
-		height: 118px;
+		/*height: 118px;*/
+    height: 5em;
 	}
 
   .filter {
@@ -774,6 +788,38 @@
     margin-top: 5px;
   }
 
+  .rightSorters{
+  	border-top-left-radius: 10px;
+    border-bottom-left-radius:10px;
+    border-bottom-right-radius:10px;
+    border-color: mediumvioletred;
+    border-style:ridge;
+    padding: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 20px;
+    background-color: whitesmoke;
+  	font-family:sans-serif;
+  	position:fixed;
+    top: 25%;
+    right: -11.5em;
+    font-size: 20px;
+    /*width: 7.7em;*/
+    transition:ease-in-out;
+    transition-duration: 1s;
+  }
+
+  .rightSorters:hover{
+    right: 0%;
+    transition:ease-in-out;
+    transition-duration: 1s;
+    box-shadow: -12px 12px 15px -5px black;
+  }
+
+  /* .sorterText{
+    font-size:medium;
+  } */
+
   input[type="checkbox"]/*:not([type="radio"]):not([type="number"])*/:not(:checked)+label {
     color: transparent;
     text-shadow: 0px 0px 2px orangered;
@@ -810,3 +856,49 @@
   .helpContents img {
     vertical-align: middle;
   }
+
+  #upwards{
+    position: fixed;
+    float: right;
+    right: 2em;
+    bottom: 1em;
+    border-radius: 30%;
+    box-shadow: 3px -2px 5px black;
+    background-color: antiquewhite;
+    padding: 2px;
+    width: 40px;
+    height: 40px;
+    opacity: 0.3;
+    /* display: flex; */
+    font-size: 40px;
+    /* justify-content: center; */
+    /* align-items: center; */
+    transition:ease-in-out;
+    transition-duration: 1s;
+    /* -webkit-animation: fadeinout 1s ease-in-out;
+    animation: fadeinout 1s ease-in-out; */
+  }
+
+  #upwards:hover {
+    opacity: 0.8;
+  }
+
+  .upwards {
+    color: transparent;
+    text-shadow: 0 0 0 black;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    display: flex;
+    align-content: center;
+  }
+
+  /* @-webkit-keyframes fadeinout {
+    0%,100% { opacity: 0; }
+    50% { opacity: 0.8; }
+  }
+
+  @keyframes fadeinout {
+    0%,100% { opacity: 0; }
+    50% { opacity: 0.8; }
+  } */

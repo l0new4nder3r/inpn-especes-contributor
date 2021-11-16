@@ -17,6 +17,8 @@ var isLoopLoadingOn=false;
 var observer;
 // filtres affiché
 var areFiltersDisplayed=false;
+// tris affichés
+var areSortersDisplayed=false;
 
 function initInputKeyPress(){
 	// Get the input field
@@ -79,8 +81,14 @@ window.onload = function() {
 async function loadAll(){
 	initInputKeyPress();
 	await checkContributorCookie();
-	inactivateBtn('allGo');
-	inactivateBtn('allStat');
+	// inactivateBtn('allGo');
+	// inactivateBtn('allStat');
+	toggleAllNoneButtonsByFamily('go');
+	toggleAllNoneButtonsByFamily('status');
+	inactivateBtn('updateObs');
+
+	document.getElementById('upwards').style.opacity = "0";
+
 	var helpClosed = await checkHelpCookie();
 	if(helpClosed!=null && helpClosed!='true'){
 		showHelp();
@@ -122,9 +130,8 @@ async function loadContributor(){
 		}
 
     let html = '';
-    let htmlSegment = `<img onclick="buildStats()" title="Statistiques" alt="contributor profile picture" src="${currentContributor.avatar}">
-					   <div class="pseudo">${currentContributor.pseudo}</div>
-						 <div class="name">${currentContributor.prenom} ${currentContributor.nom}</div>
+    let htmlSegment = `<img onclick="buildStats()" id="profilePic" alt="contributor profile picture" src="${currentContributor.avatar}">
+					   <div title="${currentContributor.prenom} ${currentContributor.nom}" class="pseudo">${currentContributor.pseudo}</div>
 					   <div class="totalScore">${currentContributor.ScoreTotal} points</div>`;
 		html += htmlSegment;
 
@@ -133,6 +140,8 @@ async function loadContributor(){
     container.innerHTML = html;
     let input = document.getElementById('contributorId');
 		input.value=USER_ID;
+		document.getElementById('profilePic').title=`Cliquer ici pour afficher les statistiques de ${currentContributor.pseudo}`;
+		document.getElementById('loadAll').title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
 	}
 	await renderContributor();
 }
@@ -205,10 +214,12 @@ async function loopLoading(){
 				isLoopLoadingOn = false;
 				// turn "load all" button to "pause"
 				buttonLoadAll.innerHTML = 'Charger les observations';
+				buttonLoadAll.title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
 			} else {
 				isLoopLoadingOn=true;
 				// turn "load all" button to "pause"
 				buttonLoadAll.innerHTML = '(mettre en pause)';
+				buttonLoadAll.title=`Cliquer ici pour arrêter le chargement des observations de ${currentContributor.pseudo}. La progression ne sera pas perdue.`;
 				buttonLoadAll.style.fontStyle='italic';
 
 				let meter = document.querySelector('.progressMeter');
@@ -238,10 +249,17 @@ async function loopLoading(){
 					}
 				}
 				isLoopLoadingOn=false;
-				// turn "load all" button to "pause"
-				buttonLoadAll.innerHTML = 'Charger les observations';
+				// turn "load all" button back to normal
+
+				// if not finished
+				if(index< latestObs.totLines){
+					buttonLoadAll.innerHTML = 'Charger les observations';
+					buttonLoadAll.title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
+				} else{
+					deactivateLoadAllButton();
+					activateUpdateAllButton();
+				}
 				buttonLoadAll.style.fontStyle='unset';
-				// buttonLoadAll.style.animation='unset';
 				meter.style.animation='unset';
 			}
 		}
@@ -277,6 +295,14 @@ async function loadSomeMore(){
 			isMoreLoadingOn=false;
 			meter.style.animation='unset';
 
+			// have we reached the end?
+			if(index< latestObs.totLines){
+					// do nothing
+			} else {
+				deactivateLoadAllButton();
+				activateUpdateAllButton();
+			}
+
 			// rendering
 			await renderObs();
 		} else {
@@ -285,6 +311,19 @@ async function loadSomeMore(){
 	} else {
 		console.log("loading still in progress");
 	}
+}
+
+function deactivateLoadAllButton(){
+	let buttonLoadAll = document.getElementById('loadAll');
+	buttonLoadAll.innerHTML = 'Observations chargées';
+	buttonLoadAll.title=`Toutes les observations de ${currentContributor.pseudo} ont été chargées.`;
+	buttonLoadAll.style.pointerEvents='none';
+	buttonLoadAll.style.backgroundColor='lightgray';
+}
+
+function activateUpdateAllButton(){
+	activateBtn('updateObs');
+	document.getElementById('updateObs').title=`PAS ENCORE IMPLEMENTE! - Lancer une mise à jour de toutes les observations non encore validées (peut prendre du temps!)`;
 }
 
 function createObserver() {
@@ -595,7 +634,10 @@ function filterObs(prefix,checkbox){
 			div.style.display='none';
 		});
 	}
+	toggleAllNoneButtonsByFamily(prefix);
+}
 
+function toggleAllNoneButtonsByFamily(prefix){
 	// check if we need to desactivate buttons
 	var checkboxes= document.querySelectorAll('.'+prefix);
 	var areAllOn = true;
@@ -663,11 +705,13 @@ function noneStat(){
 function inactivateBtn(id){
 	document.getElementById(id).style.backgroundColor='gray';
 	document.getElementById(id).style.pointerEvents='none';
+	document.getElementById(id).style.fontStyle='italic';
 }
 
 function activateBtn(id){
 	document.getElementById(id).style.backgroundColor='#4CAF50';
 	document.getElementById(id).style.pointerEvents='unset';
+	document.getElementById(id).style.fontStyle='unset';
 }
 
 function toggleAllFilters(turnOn,prefix){
@@ -701,17 +745,37 @@ function toggleLeftFilters(){
 		areFiltersDisplayed=false;
 		document.querySelector('.leftFilters').style='';
 		document.getElementById('toggleLeftFilters').innerHTML='Afficher les filtres';
+		document.getElementById('toggleLeftFilters').title="Cliquer ici pour afficher les filtres par catégories"
 	} else {
 		areFiltersDisplayed=true;
 		document.querySelector('.leftFilters').style.left='0';
+		document.querySelector('.leftFilters').style.boxShadow='12px 12px 15px -5px black';
 		document.getElementById('toggleLeftFilters').innerHTML='Masquer les filtres';
+		document.getElementById('toggleLeftFilters').title="Cliquer ici pour masquer les filtres par catégories"
 	}
 }
+
+function toggleRightSorters(){
+	if(areSortersDisplayed){
+		areSortersDisplayed=false;
+		document.querySelector('.rightSorters').style='';
+		document.getElementById('toggleRightSorters').innerHTML='Afficher les tris';
+		document.getElementById('toggleRightSorters').title="Cliquer ici pour afficher les tris"
+	} else {
+		areSortersDisplayed=true;
+		document.querySelector('.rightSorters').style.right='0';
+		document.querySelector('.rightSorters').style.boxShadow='-12px 12px 15px -5px black';
+		document.getElementById('toggleRightSorters').innerHTML='Masquer les tris';
+		document.getElementById('toggleRightSorters').title="Cliquer ici pour masquer les tris"
+	}
+}
+
 
 function blurBackground() {
 	document.querySelector('.filter').style.filter='blur(5px) grayscale(60%)';
 	document.querySelector('.menu').style.filter='blur(5px) grayscale(60%)';
 	document.querySelector('.leftFilters').style.filter='blur(5px) grayscale(60%)';
+	document.querySelector('.rightSorters').style.filter='blur(5px) grayscale(60%)';
 	document.body.className = "noclick";
 	// prevent scrolling
 	document.documentElement.style.overflow = 'hidden';
@@ -722,6 +786,7 @@ function unblurBackground() {
 	document.querySelector('.filter').style.filter='none';
 	document.querySelector('.menu').style.filter='none';
 	document.querySelector('.leftFilters').style.filter='none';
+	document.querySelector('.rightSorters').style.filter='none';
 	document.body.classList.remove('noclick');
 	// re allow scrolling
 	document.documentElement.style.overflow = 'scroll';
@@ -733,6 +798,7 @@ function showHelp(){
 	//helpDiv.innerHTML=``;
 	helpDiv.style.visibility="visible";
 	helpDiv.id='popup';
+	helpDiv.scrollTop = 0;
 	blurBackground();
 }
 
@@ -756,3 +822,25 @@ async function fetchWithTimeout(resource, options = {}) {
   clearTimeout(id);
   return response;
 }
+
+function updateObservations(){
+	var cpt=0;
+	listObservations.observations.forEach(obs=>{
+		if(obs.validation==null || (obs.validation.idStatus!=0 && obs.validation.idStatus!=5 && obs.validation.idStatus!=6)){
+			cpt++;
+		}
+	});
+	console.log('Will attempt to update '+cpt+' non validated observations');
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+	window.onscroll = function() {myFunction()};
+
+	function myFunction() {
+	  if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+	    document.getElementById('upwards').style.opacity = '';
+	  } else {
+	    document.getElementById('upwards').style.opacity = "0";
+	  }
+	}
+});

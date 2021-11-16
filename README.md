@@ -21,7 +21,7 @@ Le chargement des observations se fait :
 - soit par la récupération intégrale de toutes les observations (via clic sur un bouton).
 Dans tous les cas, les résultats sont chargés 16 par 16, jusqu'à arriver au nombre total d'observations demandées.
 
-Les observations sont affichées au fur et à mesure qu'elle sont récupérées, triées par défaut sur la dernière date de modification (descendante, utile pour savoir quelles observations ont été éventuellement validées récemment), mais il est possible de les trier par nombre de points (descendant), ou par date de création (descendante).
+Les observations sont affichées au fur et à mesure qu'elle sont récupérées, triées par défaut sur la date de création (descendante, celle de la réponse de l'API). Il est possible de changer ce tri, notamment par date de modification descendante, utile pour savoir quelles observations ont été éventuellement validées récemment. Il est aussi possible de les trier par nombre de points (descendant).
 
 Lors d'un clic sur une observation, une vue détaillée apparait et permet d'avoir plus de détail.
 
@@ -49,18 +49,23 @@ Des statistiques sur la personne contributrice et les observations chargées son
 
 - animation de chargement : quelque chose de plus heureux dans la barre de progression
 
+- Interface!
+  - bouton mettre à jour pour updater les observations (1 par 1)
+    - gérer l'update
+  - Aussi : griser boutons si user pas chargé, arranger détails contributeur si pas chargé...
+  - try and catch pour load some more et load all ?
+  - remontée : remplacer par JS, prévenir le "précédent"
+
 - tris des observations : possibilité de jouer montant/descendant? Interface? Flèches haut/bas?
 
-- retour en haut si défile bas... <a href="#"></a>
-
-- loupe : correction si image clippée?
+- loupe : correction si image clippée?!
 
 - stats :
   - pourcentage d'erreur dans le temps? "amélioration" ou pas?
   - propositions de noms d'espèces (si augmente ou pas) dans le temps
   - propositions et erreurs par go ?
 
-- Si erreur, timeout? gestion des soucis de connexion. messages, etc?
+- tester si erreur timeout, gestion des soucis de connexion. messages, etc?
   - alert "Les APIs de l'INPN semblent mettre du temps à répondre. Réessayez ultérieurement"
   - test fetch avec timeout de 15s!
 

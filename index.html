@@ -39,16 +39,18 @@
 <div class="menu">
 	<div class="contributor">
     <div class="contributorDetails"></div>
-    <div class="choice">
+    <div class="choice" title="Entrer ici votre ID pour commencer à charger vos observations">
         <span>Choisir un&middot;e autre contributeur&middot;trice...</span>
         <input type="number" pattern="\d+" id="contributorId" placeholder="ID Contributeur" onblur="changeContributor()">
     </div>
 	</div>
 	<!--div onclick="loadSomeMore()" class="button">Charger plus d'observations</div-->
-	<div onclick="loopLoading()" class="button" style="z-index: 1;position: relative;" id="loadAll">Charger les observations</div>
-	<!--div onclick="cleanAll()" class="redButton">Réinitialiser</div-->
-  <div onclick="toggleLeftFilters()" class="button" id="toggleLeftFilters">Afficher les filtres</div>
-	<div class=sort>
+	<div onclick="loopLoading()" title="Cliquer ici pour charger les observations" class="button" style="z-index: 1;position: relative;" id="loadAll">Charger les observations</div>
+  <div onclick="updateObservations()" title="Cliquer ici pour mettre vos observations non validées à jour" id="updateObs" class="button">Mettre à jour les observations</div>
+  <!--div onclick="cleanAll()" class="redButton">Réinitialiser</div-->
+  <div onclick="toggleLeftFilters()" title="Cliquer ici pour afficher les filtres par catégories" class="button" id="toggleLeftFilters">Afficher les filtres</div>
+  <div onclick="toggleRightSorters()" title="Cliquer ici pour afficher les tris d'observations" class="button" id="toggleRightSorters">Afficher les tris</div>
+  <!--div class=sort>
 		<div class="sortBy"> Trier par :</div>
 		<div class="sortBy">
       <input type="radio" id="dateModif" name="sort" value="dateModif" onchange="sortObs()">
@@ -62,8 +64,8 @@
 		    <input type="radio" id="points" name="sort" value="points" onchange="sortObs()">
       	<label for="points">Points (descendants)</label>
     </div>
-	</div>
-  <div onclick="showHelp()" style="float: right;" class="button">A propos</div>
+	</div-->
+  <div onclick="showHelp()" title="Cliquer ici pour afficher le message d'accueil" style="float: right;" class="button">A propos</div>
 </div>
 
 <div class="meter">
@@ -99,7 +101,7 @@
       <h2>Contact</h2>
       <p>En cas de besoin, vous pouvez me contacter ici (ôter les accolades et espaces) : n {.} buchon {@} free {.} fr</p>
       <p>Vous pouvez retrouver ces informations via le bouton "A propos".</p>
-      <p>Version 0.2</p>
+      <p>Version 0.3</p>
       <br/>
       <div class="button" style="margin: auto;height: 4em;" onclick="closeHelp()">Fermer cette fenêtre</div>
     </div>
@@ -147,9 +149,9 @@
       <label for="24222202" title="Autres">&#8230;</label>
       <br/>
       <div class="btns">
-        <div class="filterBtn" id="allGo" onclick="allGo()">Tous</div>
+        <div class="filterBtn" id="allGo" onclick="allGo()" title="Sélectionner toutes les catégories">Tous</div>
         &nbsp;
-        <div class="filterBtn" id="noneGo" onclick="noneGo()">Aucun</div>
+        <div class="filterBtn" id="noneGo" onclick="noneGo()" title="Désélectionner toutes les catégories">Aucun</div>
       </div>
     </div>
     <br/>
@@ -178,14 +180,34 @@
       <label for="6" title="Observation invalidée">&#10060;</label>
       <br/>
       <div class="btns">
-        <div class="filterBtn" id="allStat" onclick="allStat()">Tous</div>
+        <div class="filterBtn" id="allStat" onclick="allStat()" title="Sélectionner toutes les catégories">Tous</div>
         &nbsp;
-        <div class="filterBtn" id="noneStat" onclick="noneStat()">Aucun</div>
+        <div class="filterBtn" id="noneStat" onclick="noneStat()" title="Désélectionner toutes les catégories">Aucun</div>
       </div>
       <br/>
     </div>
   </div>
   <br/>
+</div>
+
+<div class=rightSorters>
+  <h4 style="margin: 5px;">Tri</h4>
+  <div class="sortBy">
+    <input type="radio" id="dateModif" name="sort" value="dateModif" onchange="sortObs()">
+    <label for="dateModif">Date de dernière modification</label>
+  </div>
+  <div class="sortBy">
+      <input type="radio" id="dateCrea" name="sort" value="dateCrea" checked onchange="sortObs()">
+      <label for="dateCrea">Date de création (descendante)</label>
+  </div>
+  <div class="sortBy">
+      <input type="radio" id="points" name="sort" value="points" onchange="sortObs()">
+      <label for="points">Points (descendants)</label>
+  </div>
+</div>
+
+<div id="upwards">
+  <a href="#" class="upwards">&#11014;</a>
 </div>
 
 <div id="bottom"></div>
