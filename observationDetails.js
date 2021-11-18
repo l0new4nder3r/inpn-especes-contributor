@@ -95,6 +95,7 @@ async function showDetails(idData){
 								${statusComment}
 			  				<p>${chosenObs.lbGroupSimple}</p>
 			  				<p style="position: relative;width: 300px;">${chosenObs.nomCommuns}</p>
+								<p id="rare"></p>
 			  				<div id="map"></div>
 			  				<p style="font-style:italic;">${chosenObs.commune} (${chosenObs.numDepartement}), le ${creationDate}</p>
 								${commentaire}
@@ -127,7 +128,7 @@ async function showDetails(idData){
   	html +=`<div class="mySlides fade">
   				<div class="numbertext">${cpt} / ${chosenObs.photos.length}</div>
   				<div onclick="toggleMagnify();" class="toggleMagnify">&#x1F50D;</div>
-			   	<img ${magnifierId} onclick="toggleCoverContain(this)" src="${photo.inpnFileUri}" style="object-fit: cover;">
+			   	<img ${magnifierId} title="Cliquer dans l'image pour changer de format" onclick="toggleCoverContain(this)" src="${photo.inpnFileUri}" style="object-fit: cover;">
 			</div>`;
   	cpt++;
   });
@@ -200,6 +201,21 @@ async function showDetails(idData){
 			}
 		}
 	}
+
+	// rare species
+	// espèce ayant moins de 5000 données sur l'INPN https://openobs.mnhn.fr/api/occurrences/stats/taxon/98651
+	if(chosenObs.cdRef!=null){
+		var occurrencesUrl = `https://openobs.mnhn.fr/api/occurrences/stats/taxon/${chosenObs.cdRef}`;
+		var occurrences = await callAndWaitForJsonAnswer(occurrencesUrl);
+		if(occurrences==null || occurrences.occurrenceCount==null){
+			console.log('Erreur lors de l\'appel du comptage des observations');
+		} else {
+			if(occurrences.occurrenceCount<5000){
+				document.getElementById('rare').title=occurrences.occurrenceCount+" observations recensées";
+				document.getElementById('rare').innerHTML='Espèce ayant moins de 5000 observations sur l\'INPN';
+			}
+		}
+	}
 	focus.style.cursor="unset";
 }
 
@@ -219,10 +235,18 @@ function magnify(imgID, zoom) {
 	  /* Set background properties for the magnifier glass: */
 	  glass.style.backgroundImage = "url('" + img.src + "')";
 	  glass.style.backgroundRepeat = "no-repeat";
-	  glass.style.backgroundSize = (img.width * zoom) + "px " + (img.height * zoom) + "px";
+
+		var objSize = getObjectFitSize((img.style.objectFit=='contain'), img.width, img.height, img.naturalWidth, img.naturalHeight);
+		// using real dimensions of altered images (by object fit css)
+		glass.style.backgroundSize = (objSize.width * zoom) + "px " + (objSize.height * zoom) + "px";
+		// before :	glass.style.backgroundSize = (img.width * zoom) + "px " + (img.height * zoom) + "px";
+
 	  bw = 3;
 	  w = glass.offsetWidth / 2;
 	  h = glass.offsetHeight / 2;
+
+		var naturalRatio = img.naturalWidth / img.naturalHeight;
+		var visibleRatio = img.width / img.height;
 
 	  /* Execute a function when someone moves the magnifier glass over the image: */
 	  glass.addEventListener("mousemove", moveMagnifier);
@@ -247,8 +271,63 @@ function magnify(imgID, zoom) {
 	    /* Set the position of the magnifier glass: */
 	    glass.style.left = (x - w) + "px";
 	    glass.style.top = (y - h) + "px";
+
 	    /* Display what the magnifier glass "sees": */
-	    glass.style.backgroundPosition = "-" + ((x * zoom) - w + bw) + "px -" + ((y * zoom) - h + bw) + "px";
+
+			// https://stackoverflow.com/questions/37256745/object-fit-get-resulting-dimensions
+			var naturalRatio = img.naturalWidth / img.naturalHeight;
+			var visibleRatio = img.width / img.height;
+
+			if(img.style!=null&&img.style.objectFit!=null){
+				if(img.style.objectFit=='cover'){
+					// img might be clipped, vert or hor (sides not displayed)
+					if (naturalRatio > visibleRatio){
+						// height displayed not cropped, just different ratio
+						// let's get the width, partially hidden, of the displayed image
+						var croppedImgWidth = img.height * naturalRatio;
+						// what's the length of the cropped part? Top by example
+						var croppedImgWidthLength = (croppedImgWidth-img.width)/2;
+						// xRatio yRatio ?
+						var xPosition = 0 -( ((x * zoom) - w + bw + (croppedImgWidthLength*zoom)));
+						// console.log("there croppedImgWidth "+croppedImgWidth+" croppedImgWidthLength "+croppedImgWidthLength+" res= "+xPosition+" px")
+						glass.style.backgroundPosition = "" + xPosition + "px -" + ((y * zoom) - h + bw) + "px";
+					} else {
+						// width displayed not cropped, just different ratio
+						// let's get the height, partially hidden, of the displayed image
+						var croppedImgHeight = img.width / naturalRatio;
+						// what's the length of the cropped part? Top by example
+						var croppedImgHeightLength = (croppedImgHeight-img.height)/2;
+						// xRatio yRatio ?
+						var yPosition = 0 -( ((y * zoom) - h + bw + (croppedImgHeightLength*zoom)));
+						// console.log("here croppedImgHeight "+croppedImgHeight+" croppedImgHeightLength "+croppedImgHeightLength+" res= "+yPosition+" px")
+						glass.style.backgroundPosition = "-" + ((x * zoom) - w + bw) + "px " +yPosition + "px";
+					}
+				} else if (img.style.objectFit=='contain'){
+					// img might be letterboxed (white on the sides h or v)
+
+					var imageComputedStyle = window.getComputedStyle(img);
+					var imagePositions = imageComputedStyle.getPropertyValue("object-position").split(" ");
+
+					if (naturalRatio > visibleRatio){
+						// horizontal white bars on top/bottom, y start and height ratio changed
+						var verticalPercentage = parseInt(imagePositions[1]) / 100;
+						var destinationHeightPercentage = (img.naturalHeight / img.height) / (img.naturalWidth / img.width);
+						var destinationYPercentage = (1 - destinationHeightPercentage) * verticalPercentage;
+
+						glass.style.backgroundPosition = "-" + ((x * zoom) - w + bw) + "px -" + ((y * zoom * destinationHeightPercentage) - h + bw + (destinationYPercentage*zoom)) + "px";
+					} else {
+						// vertical white bars on the sides, x start and width ratio changed
+						var horizontalPercentage = parseInt(imagePositions[0]) / 100;
+						var destinationWidthPercentage = (img.naturalWidth / img.width) / (img.naturalHeight / img.height);
+						var destinationXPercentage = (1 - destinationWidthPercentage) * horizontalPercentage;
+
+						glass.style.backgroundPosition = "-" + ((x * zoom * destinationWidthPercentage) - w + bw + (destinationXPercentage*zoom) ) + "px -" + ((y * zoom) - h + bw) + "px";
+				  }
+				} else {
+					// should not happen ; as before
+					glass.style.backgroundPosition = "-" + ((x * zoom) - w + bw) + "px -" + ((y * zoom) - h + bw) + "px";
+				}
+			}
 	  }
 
 	  function getCursorPos(e) {
@@ -264,9 +343,33 @@ function magnify(imgID, zoom) {
 	    y = y - window.pageYOffset;
 	    return {x : x, y : y};
 	  }
-      glass.style.left = "594px";
-      glass.style.top = "21.5px";
-	}
+    glass.style.left = "594px";
+    glass.style.top = "21.5px";
+}
+
+// adapted from: https://www.npmjs.com/package/intrinsic-scale
+function getObjectFitSize(contains /* true = contain, false = cover */, containerWidth, containerHeight, width, height){
+    var doRatio = width / height;
+    var cRatio = containerWidth / containerHeight;
+    var targetWidth = 0;
+    var targetHeight = 0;
+    var test = contains ? (doRatio > cRatio) : (doRatio < cRatio);
+
+    if (test) {
+        targetWidth = containerWidth;
+        targetHeight = targetWidth / doRatio;
+    } else {
+        targetHeight = containerHeight;
+        targetWidth = targetHeight * doRatio;
+    }
+
+    return {
+        width: targetWidth,
+        height: targetHeight,
+        x: (containerWidth - targetWidth) / 2,
+        y: (containerHeight - targetHeight) / 2
+    };
+}
 
 function displayMap(x,y){
 	var mymap = L.map('map').setView([x, y], 13);
@@ -298,7 +401,6 @@ function toggleMagnify(){
       toggleMagnifier.style.visibility='collapse';
     }
 }
-
 
 function hideDetails(){
 

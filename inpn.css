@@ -156,6 +156,7 @@
   .popinTitle {
     color: white;
     font-size: large;
+    text-shadow: 2px 1px black;
     padding-left: 0.75em;
     display: flex;
     justify-content: flex-start;
@@ -400,6 +401,10 @@
       font-size: small;
       color: orangered;
       padding-top: 0.3em;
+  }
+
+  #rare {
+    font-style:italic;
   }
 
 	.contributor {

@@ -25,62 +25,59 @@ Les observations sont affichées au fur et à mesure qu'elle sont récupérées,
 
 Lors d'un clic sur une observation, une vue détaillée apparait et permet d'avoir plus de détail.
 
-Des statistiques sur la personne contributrice et les observations chargées sont aussi accessibles par un bouton.
+Des statistiques sur la personne contributrice et les observations chargées sont aussi accessibles par un clic sur l'image de profil.
 
 ## TODO
 
-- revoir et améliorer l'interface:
-  - responsive page principale tablette ou smartphone (@media css?)
-    - ipad Air : menu KO, obs hauteur ko (largeur x3 bof) filters ko
-    - obs : si écran large, découpage en 4 sinon en 2 ?
-  - responsive popin détails
-    - ipad air : ko
-  - responsive popin de stats
-    - ipad air : ko graphs cassés
-  - page de stats à rendre plus sexy
-    - graphiques à revoir, libellé, couleurs?
+### Revoir et améliorer l'interface
 
-- Static map ids/values des groupes opérationnels?
+#### Responsiveness
 
-- infos pour les espèces protégées, en danger? Savoir si une est en danger ou pas par exemple, infos dans le détail d'une obs. API clic détail obs.
-  => ajouter détail en dur https://fr.wikipedia.org/wiki/Statut_de_conservation
+page principale tablette ou smartphone (@media css?)
+- ipad Air : menu KO, obs hauteur ko (largeur x3 bof) filters ko
+- obs : si écran large, découpage en 4 sinon en 2 ?
 
-- espèce "rare"? Moins de x sur determinobs? (possible?)
+Responsive popin détails
+- ipad air : ko
 
+Responsive popin de stats
+- ipad air : ko graphs cassés
+
+#### stats
+
+Page de stats à rendre plus sexy
+- graphiques à revoir, libellé, couleurs?
+
+#### page principale
+- arranger détails contributeur si pas chargé...
 - animation de chargement : quelque chose de plus heureux dans la barre de progression
-
-- Interface!
-  - bouton mettre à jour pour updater les observations (1 par 1)
-    - gérer l'update
-  - Aussi : griser boutons si user pas chargé, arranger détails contributeur si pas chargé...
-  - try and catch pour load some more et load all ?
-  - remontée : remplacer par JS, prévenir le "précédent"
-
+- remontée : remplacer par JS, prévenir le "précédent" ? Rendre plus joli?
+- comptes sur chaque filtre du nombre d'obs courantes concernées (potentiellement lourd?!)
 - tris des observations : possibilité de jouer montant/descendant? Interface? Flèches haut/bas?
 
-- loupe : correction si image clippée?!
+### Coté code...
+- refacto ? méthodes plus courtes, code redondant...
+- try and catch pour load some more et load all ?
+- Static map ids/values des groupes opérationnels?
+- optimisations (une seule itération dans les stats?). utile?!
+- prévenir les doublons au chargement si soucis de connexion - map globale? id en clef, obj en valeur. push dedans si pas id seulement ?
 
+### New feature ideas ?
+- Espèces "rares" (obs validées) dans les stats? (multiples appels à attendre)
 - stats :
-  - pourcentage d'erreur dans le temps? "amélioration" ou pas?
-  - propositions de noms d'espèces (si augmente ou pas) dans le temps
+  - pourcentage d'erreur dans le temps? ("amélioration" ou pas?)
+  - propositions de noms d'espèces (si augmente ou pas) dans le temps?
   - propositions et erreurs par go ?
-
-- tester si erreur timeout, gestion des soucis de connexion. messages, etc?
-  - alert "Les APIs de l'INPN semblent mettre du temps à répondre. Réessayez ultérieurement"
-  - test fetch avec timeout de 15s!
-
-- code : optimisations (une seule itération dans les stats?). utile?!
-
-- FIX : prévenir les doublons au chargement si soucis de connexion ou quoi... if avant de push
-  => map globale? id en clef, obj en valeur. push dedans si pas id seulement...?
-  => ok pour itérations? index à revoir au passage?
 
 - sélection d'un contributeur autrement? Nom, liste/rang? Pas trouvé comment?
 
-- gestion param/url/précédent?
+- API récupération de tous les id de data pour un user donné?
+- API récupération data triées par date de dernière modif?
 
 - possibilité de garder des infos, stockage local ou cookie?
   - observations en "fav" pour un user donné
   - date de dernière modif, une fois tout chargé, possibilité de pastilles si mises à jour?
+
+- gestion param / url / bouton précédent du navigateur ? Ou pas?
 
 - PWA ?
