@@ -171,6 +171,7 @@
       height: inherit;
       top: 46.5px;
       position: relative;
+      display: flex;
   }
 
 	/* Slideshow container */
@@ -180,6 +181,7 @@
 	  margin-left: 20px;
 	  width: 50%;
 	  height: 100%;
+    float:left;
     /*overflow: scroll;
     margin-top: 3em;*/
 	}
@@ -270,7 +272,7 @@
 	  align-items: center;
 	  height: 100%;
     cursor: pointer;
-    width: 6em;
+    width: 5em;
 	}
 
   .redButton {
@@ -326,16 +328,18 @@
 	.infos {
 		position: relative;
 		top: 20px;
-		float: right;
-		padding: 15px;
-		right: 150px;
+		float: left;
+		padding: 40px;
+		/*right: 150px;*/
     /*overflow: scroll;
     margin-top: 1em;*/
+    width:40%;
 	}
 
 	#map {
 		height: 200px;
 		width: 300px;
+    left: 10%;
 	}
 
 	.validated {
@@ -361,15 +365,15 @@
 	}
 
 	.scoreDetails {
-		left: 30px;
-		position: absolute;
-		width: 400px;
+    left: 10%;
+    position: absolute;
+		width: 80%;
 	}
 
 	.statusComment {
 		font-style: italic;
 		position: relative;
-		width: 300px;
+		width: 90%;
 	}
 
 	.linkMore {
@@ -379,14 +383,14 @@
 		font-family: sans-serif;
 		text-decoration: none;
 		cursor: help;
-		width: 300px;
+		width: 90%;
 		display: block;
 	}
 
 	.obsComment {
 	    font-style: italic;
 	    position: relative;
-	    width: 300px;
+	    width: 90%;
 	}
 
 	.corrected {
@@ -610,7 +614,7 @@
 
 	.canvas {
 		/*width: 400px;*/
-		height: 250px;
+		/*height: 250px;*/
 		/*left: 50%;*/
 		/*position: relative;*/
 		/*top: -15em;*/
@@ -687,7 +691,7 @@
 
   .statsLeft > * {
       margin: auto;
-      width: 500px;
+      width: 80%;
   }
 
   .statsLeftContents{
@@ -700,7 +704,7 @@
 
   .statsRight > * {
       margin: auto;
-      width: 500px;
+      width: 80%;
   }
 
   .statsIntro {

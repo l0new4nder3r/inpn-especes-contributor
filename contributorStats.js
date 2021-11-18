@@ -40,8 +40,13 @@ async function showStats(){
 											<div class="statsContents">
 											</div>`;
 
+
+
 		let statsContents = document.querySelector('.statsContents');
-		statsContents.innerHTML =`<div class="statsIntro"></div>`;
+		statsContents.innerHTML += `<div class="statsLeft"></div>
+																<div class="statsRight"></div>`;
+		let statsleft = document.querySelector('.statsLeft');
+		statsleft.innerHTML =`<div class="statsIntro"></div>`;
 
 		// tout est chargé? si non : avertissement
 		var isAllLoaded = listObservations.observations.length==latestObs.totLines;
@@ -70,11 +75,7 @@ async function showStats(){
 
 		let averageLoaded = (sum/listObservations.observations.length).toFixed(0);;
 
-		statsContents.innerHTML += `<div class="statsLeft"></div>
-																<div class="statsRight"></div>`;
-
-		var leftStats = document.querySelector('.statsLeft');
-		leftStats.innerHTML=`<div class="statsLeftContents"></div>`;
+		statsleft.innerHTML+=`<div class="statsLeftContents"></div>`;
 		var leftStatsContents = document.querySelector('.statsLeftContents');
 
 		let asterisk = '';
@@ -141,12 +142,12 @@ async function showStats(){
 		}
 
 		/* scores graphique! */
-		leftStats.innerHTML+=buildCanvas('scoresCanvas',`Répartition des observations${asterisk} validées par score`);
-		leftStats.innerHTML+='<br/>';
+		statsleft.innerHTML+=buildCanvas('scoresCanvas',`Répartition des observations${asterisk} validées par score`);
+		statsleft.innerHTML+='<br/>';
 
 		/* graphique histo avec répartition par statut de validation */
-		leftStats.innerHTML+=buildCanvas('validationStatusCanvas',`Répartition des observations${asterisk} par statut de validation`);
-		leftStats.innerHTML+='<br/>';
+		statsleft.innerHTML+=buildCanvas('validationStatusCanvas',`Répartition des observations${asterisk} par statut de validation`);
+		statsleft.innerHTML+='<br/>';
 
 		var rightStatsContents = document.querySelector('.statsRight');
 

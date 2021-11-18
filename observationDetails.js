@@ -82,63 +82,43 @@ async function showDetails(idData){
 		commentaire=`<div class="obsComment">"${chosenObs.commentaire}"</div>`;
 	}
 
-  let html = `<div class="popinTop">
+  let htmlBegin = `<div class="popinTop">
 								<div class="popinTitle">Détails de l'observation n°${chosenObs.idData}</div>
 								<div onclick="hideDetails()" class="tinyButton">X</div>
 							</div>
-							<div class="detailsContents">
-			  				<div class="infos">
+							<div class="detailsContents">`;
+
+	var htmlPhotos = buildPhotos(chosenObs);
+
+	let htmlInfos=`<div class="infos">
 								${validated}
 								${titleLink}
 								${correctedName}
 								<div class="protectionStatus"></div>
 								${statusComment}
 			  				<p>${chosenObs.lbGroupSimple}</p>
-			  				<p style="position: relative;width: 300px;">${chosenObs.nomCommuns}</p>
+			  				<p style="position: relative;width: 90%;;">${chosenObs.nomCommuns}</p>
 								<p id="rare"></p>
 			  				<div id="map"></div>
 			  				<p style="font-style:italic;">${chosenObs.commune} (${chosenObs.numDepartement}), le ${creationDate}</p>
 								${commentaire}
-								<p>${chosenObs.scoreTotal} points</p>`;
+								<p>${chosenObs.scoreTotal} points</p>
+								<div class="scoreDetails"></div>`;
 
-	// preparing scores placeholder
-	let scoresHtml=`<div class="scoreDetails"></div>`;
-	html +=scoresHtml;
 	// adding the progress part again
 	var validLabel='Erreur de données, validation vide';
 	if(chosenObs.validation.lbStatus!=null){
 		validLabel=chosenObs.validation.lbStatus;
 	}
 
-	html+=`<div title="${validLabel}" class="progressDetails">`;
-	html+=buildProgress(chosenObs.validation.idStatus);
-	html+=`</div>`;
+	htmlInfos+=`<div title="${validLabel}" class="progressDetails">`;
+	htmlInfos+=buildProgress(chosenObs.validation.idStatus);
+	htmlInfos+=`</div>`;
 	// and end the infos div
-	html +=`</div>`;
-	//let's deal with the pictures now...
-  html += `<div class="photos">`;
-  let cpt = 1;
-  // make the photos and their wrappers
-  chosenObs.photos.forEach(photo=>{
-  	let magnifierId='';
-  	if (cpt==1) {
-  		// init, magnifier on first image
-  		magnifierId=`id="magnify"`;
-  	}
-  	html +=`<div class="mySlides fade">
-  				<div class="numbertext">${cpt} / ${chosenObs.photos.length}</div>
-  				<div onclick="toggleMagnify();" class="toggleMagnify">&#x1F50D;</div>
-			   	<img ${magnifierId} title="Cliquer dans l'image pour changer de format" onclick="toggleCoverContain(this)" src="${photo.inpnFileUri}" style="object-fit: cover;">
-			</div>`;
-  	cpt++;
-  });
-  // add the links for the slideshow
-  html += `<a class="prev" onclick="plusSlides(-1)">&#10094;</a>
-  					<a class="next" onclick="plusSlides(1)">&#10095;</a>
-  					</div>
-					</div>`;
+	htmlInfos +=`</div>`;
+	htmlEnd=`</div>`;
 
-  focus.innerHTML = html;
+  focus.innerHTML = (htmlBegin+htmlPhotos+htmlInfos+htmlEnd);
   // make this visible
   focus.style.visibility='visible';
 	focus.id='popup';
@@ -218,6 +198,33 @@ async function showDetails(idData){
 	}
 	focus.style.cursor="unset";
 }
+
+
+function buildPhotos(chosenObs){
+	//let's deal with the pictures now...
+	htmlPhotos = `<div class="photos">`;
+	let cpt = 1;
+	// make the photos and their wrappers
+	chosenObs.photos.forEach(photo=>{
+		let magnifierId='';
+		if (cpt==1) {
+			// init, magnifier on first image
+			magnifierId=`id="magnify"`;
+		}
+		htmlPhotos +=`<div class="mySlides fade">
+										<div class="numbertext">${cpt} / ${chosenObs.photos.length}</div>
+										<div onclick="toggleMagnify();" class="toggleMagnify">&#x1F50D;</div>
+										<img ${magnifierId} title="Cliquer dans l'image pour changer de format" onclick="toggleCoverContain(this)" src="${photo.inpnFileUri}" style="object-fit: cover;">
+								</div>`;
+		cpt++;
+	});
+	// add the links for the slideshow
+	htmlPhotos += `<a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+								 <a class="next" onclick="plusSlides(1)">&#10095;</a>
+							</div>`;
+	return htmlPhotos;
+}
+
 
 /* code taken from w3school examples */
 function magnify(imgID, zoom) {
