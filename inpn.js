@@ -684,7 +684,7 @@ function deactivateLoadAllButton(){
 
 function activateUpdateAllButton(){
 	activateBtn('updateObs');
-	document.getElementById('updateObs').title=`PAS ENCORE IMPLEMENTE! - Lancer une mise à jour de toutes les observations non encore validées (peut prendre du temps!)`;
+	document.getElementById('updateObs').title=`Lancer une mise à jour de toutes les observations non encore validées (peut prendre du temps!)`;
 }
 
 function startProgressAnimation(){
