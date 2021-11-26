@@ -13,6 +13,7 @@
     <script type="text/javascript" src="inpn.js"></script>
     <script type="text/javascript" src="observationDetails.js"></script>
     <script type="text/javascript" src="contributorStats.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
 	  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
     <!--link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"-->
     <meta name="author" content="Nicolas Buchon">
@@ -76,22 +77,23 @@
   <div class="helpContents">
       <h2>Bienvenue</h2>
       <p>Cet outil permet de charger et de consulter toutes les observations d'un&middot;e contributeur&middot;trice de l'application <a href="https://determinobs.fr" title="Déterminobs" target="_blank"><img alt="INPN Espèces Logo, Déterminobs Logo" height="32" src="https://determinobs.fr/assets/imgs/logo-inpn.png">déterminobs</a> de l'<a href="https://inpn.mnhn.fr/informations/inpn-especes" target="_blank">INPN</a>, et d'en afficher des statistiques.</p>
-      <p>Utilisateur enthousiaste, malheureusement frustré, parfois, par les applications mobiles et web existantes, j'ai codé cette page pour avoir une vue synoptique de mes contributions. Elle me permet de retrouver aisément (une fois tout chargé, ce qui peut prendre un peu de temps) mes observations triées par dernière date de modification, notamment.</p>
+      <p>Utilisateur enthousiaste, malheureusement frustré, parfois, par les applications mobiles et web existantes, j'ai codé cette page pour avoir une vue synoptique de mes contributions. Elle me permet de retrouver aisément (une fois tout chargé, ce qui peut prendre un peu de temps) toutes mes observations, triées par dernière date de modification, notamment.</p>
       <p>Comme elle m'est utile, je me suis dit que je pouvais la rendre publique, pour qu'elle puisse éventuellement servir à d'autres.</p>
       <p>Cette page a été imaginée, codée et sera maintenue sur mon temps libre. Il s'agit d'une <span style="font-style:italic;font-weight:bold;">initiative personnelle</span>, qui, je l'espère, ne gênera ni ne causera de tort à l'INPN ou à ses contributeurs&middot;trices.</p>
       <br/>
       <h2>Utilisation</h2>
       <p>Lors de la première consultation, des observations de mon compte se chargent. Il est possible de changer de personne en entrant un autre identifiant (trouvable sur le <a href="https://determinobs.fr/#/home" title="determinobs.fr" target="_blank">site officiel</a> une fois connecté, dans l'URL) dans le champ prévu à cet effet.</p>
-      <p>En naviguant, une fois le bas de la page atteint, l'application va charger plus de résultats si le total max n'a pas été atteint. Cliquer sur "Tout charger" lance une récupération des observations par lots de 16, en boucle, jusqu'au total.</p>
+      <p>En naviguant, une fois le bas de la page atteint, l'application va charger plus de résultats si le total n'a pas été atteint. Cliquer sur "Charger les observations" lance une récupération des observations par lots de 16, en boucle, jusqu'au total.</p>
+      <p>L'application essayera de stocker dans votre navigateur une trace des observations chargées, pour les retrouver plus rapidement lors d'une visite ultérieure.</p>
       <p>Cette application ne nécessite pas d'être connecté à son compte INPN.</p>
       <p>Des mécanismes de tri et de filtres basiques peuvent être appliqués sur les observations chargées.</p>
       <p>Le détail d'une observation s'ouvre par un clic. Il est possible de défiler ses photos.</p>
       <p>Les statistiques d'utilisation sont accessibles par un clic sur l'image de profil de la personne sélectionnée.</p>
-      <p>L'interface est loin d'être parfaite ; il me faudrait travailler sur la compatibilité mobile/tablette, revoir l'UX/UI (ce qui n'est pas mon fort). Des bugs plus ou moins gênants peuvent persister, je m'en excuse - n'hésitez pas à me faire signe si vous utilisez cet outil et que vous souhaiteriez que je corrige des choses !</p>
+      <p>L'interface est loin d'être parfaite ; il me faudrait travailler sur la compatibilité mobile/tablette, gérer un système de notifications, revoir l'UX/UI (ce qui n'est pas mon fort). Des bugs plus ou moins gênants peuvent persister, je m'en excuse - n'hésitez pas à me faire signe si vous utilisez cet outil et que vous souhaiteriez que je corrige des choses !</p>
       <br/>
       <h2>Aspects techniques</h2>
       <p>Cette application est "pure Web" (HTML, CSS, VanillaJS) - rien n'est stocké côté serveur. Elle utilise les APIs (sans authentification) publiques du site officiel, directement dans votre navigateur.</p>
-      <p>Un cookie sera déposé sur votre navigateur si vous changez mon identifiant pour un autre (pour en garder la trace, et éviter de devoir changer le mien à chaque visite).</p>
+      <p>Un cookie sera déposé sur votre navigateur si vous changez mon identifiant pour un autre (pour en garder la trace, et éviter de devoir changer le mien à chaque visite). Un second vous évitera de retrouver ce message à chaque connexion.</p>
       <p>Un suivi basique est opéré avec <a href="https://fr.matomo.org/" target="_blank"><img alt="Matomo Logo" title="Matomo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Matomo_Logo.svg/128px-Matomo_Logo.svg.png"></a> (comme sur le reste de mon site), afin de d'avoir une idée du nombre de visites de cette page.</p>
       <p>Ce site perso est auto-hébergé sur un vieux <a href="https://www.raspberrypi.com/products/raspberry-pi-2-model-b/" title="Raspberry Pi" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/fr/3/3b/Raspberry_Pi_logo.svg" alt="Raspberry Pi logo.svg" width="25"></a>. Il est possible qu'il soit de temps en temps inaccessible.</p>
       <p>Le code source est accessible directement depuis votre navigateur. Il est aussi sauvegardé sur <a href="https://github.com/l0new4nder3r/inpn-especes-contributor" title="Github" target="_blank"><img alt="github logo" width="32" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/64px-Octicons-mark-github.svg.png"></a>, et sera accessible quand j'aurais rendu public le repository.</p>
@@ -101,7 +103,7 @@
       <h2>Contact</h2>
       <p>En cas de besoin, vous pouvez me contacter ici (ôter les accolades et espaces) : n {.} buchon {@} free {.} fr</p>
       <p>Vous pouvez retrouver ces informations via le bouton "A propos".</p>
-      <p>Version 0.4</p>
+      <p>Version 0.5</p>
       <br/>
       <div class="button" style="margin: auto;height: 4em;" onclick="closeHelp()">Fermer cette fenêtre</div>
     </div>
@@ -193,11 +195,11 @@
 <div class=rightSorters>
   <h4 style="margin: 5px;">Tri</h4>
   <div class="sortBy">
-    <input type="radio" id="dateModif" name="sort" value="dateModif" onchange="sortObs()">
+    <input type="radio" id="dateModif" name="sort" value="dateModif" checked onchange="sortObs()">
     <label for="dateModif">Date de dernière modification</label>
   </div>
   <div class="sortBy">
-      <input type="radio" id="dateCrea" name="sort" value="dateCrea" checked onchange="sortObs()">
+      <input type="radio" id="dateCrea" name="sort" value="dateCrea" onchange="sortObs()">
       <label for="dateCrea">Date de création (descendante)</label>
   </div>
   <div class="sortBy">
@@ -209,6 +211,8 @@
 <div id="upwards">
   <a href="#" class="upwards">&#11014;</a>
 </div>
+
+<div id="notifications"></div>
 
 <div id="bottom"></div>
 </body>

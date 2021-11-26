@@ -43,6 +43,8 @@ Responsive popin détails
 Responsive popin de stats
 - ipad air : ko graphs cassés
 
+Détection "touch" js qui inhibe les hover? comportement bizarre sinon... Et loupe aussi?
+
 #### stats
 
 Page de stats à rendre plus sexy
@@ -54,30 +56,42 @@ Page de stats à rendre plus sexy
 - remontée : remplacer par JS, prévenir le "précédent" ? Rendre plus joli?
 - comptes sur chaque filtre du nombre d'obs courantes concernées (potentiellement lourd?!)
 - tris des observations : possibilité de jouer montant/descendant? Interface? Flèches haut/bas?
+- ne garder qu'un seul bouton? charger qui devient mise à jour si total ok?
+- gestion notifs si différences lors d'un update! score? date modif? pastilles si mises à jour
+- améliorer/ajouter popin notif messages en bas à droite!
 
 ### Coté code...
 - refacto ? méthodes plus courtes, code redondant...
+- gestion de la complexité!
+- poser le html un max à part...
 - try and catch pour load some more et load all ?
 - Static map ids/values des groupes opérationnels?
 - optimisations (une seule itération dans les stats?). utile?!
 - prévenir les doublons au chargement si soucis de connexion - map globale? id en clef, obj en valeur. push dedans si pas id seulement ?
 
 ### New feature ideas ?
-- Espèces "rares" (obs validées) dans les stats? (multiples appels à attendre)
+- Espèces "rares" (obs validées) dans les stats? (multiples appels à attendre, bof...)
 - stats :
   - pourcentage d'erreur dans le temps? ("amélioration" ou pas?)
   - propositions de noms d'espèces (si augmente ou pas) dans le temps?
   - propositions et erreurs par go ?
+- bouton "observation au hasard"? nombre random entre 1 et le max id data.
+
+- gérer url... /inpn/obs_id si détail? à part, ou permet de charger 1 obs pour partage? Lien vers obs chez INPN partage?
+
+- fav! coeur vide/plein 1 clic pour retrouver facilement obs. Retrouver ou/comment? Indépendant users?
 
 - sélection d'un contributeur autrement? Nom, liste/rang? Pas trouvé comment?
+- garder pseudos des contributeurs consultés pour listbox?
 
 - API récupération de tous les id de data pour un user donné?
 - API récupération data triées par date de dernière modif?
+  	https://inpn.mnhn.fr/inpn-web-services/inpnespece/data?paginStart=1&paginEnd=16&filtreOrder=DESC&orderField=DATE_VALIDATION&idUtilisateur=20784
+    DATE_MODIFICATION marche mais résultats KO... marche pas quoi.
+    Totlines 1088 10 de trop, si "validation"?! (qui ne ramène que des validées, bof bof...)
 
-- possibilité de garder des infos, stockage local ou cookie?
-  - observations en "fav" pour un user donné
-  - date de dernière modif, une fois tout chargé, possibilité de pastilles si mises à jour?
-
-- gestion param / url / bouton précédent du navigateur ? Ou pas?
+- date de dernière modif, une fois tout chargé, possibilité de pastilles si mises à jour?
+  -> reload : signe sur les obs mises à jour récemment... auto avec render? date > ? Ou autre?
+  -> display message notif obs mise à jour ; clic dessus = load details? + disparait
 
 - PWA ?

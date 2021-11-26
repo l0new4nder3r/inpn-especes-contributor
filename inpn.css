@@ -66,11 +66,11 @@
     }
     /* 1 init */
     .status1 {
-    	color: goldenrod;
+    	color: #ffab61;
     }
     /* 2 photo traitée */
     .status2 {
-    	color: orange;
+    	color: goldenrod;
     }
     /* 3 g gp traité */
     .status3 {
@@ -747,7 +747,7 @@
     left: 0%;
     transition:ease-in-out;
     transition-duration: 1s;
-    box-shadow: 12px 12px 15px -5px black;
+    box-shadow: -12px -12px 15px -5px black;
   }
 
   .filterText{
@@ -822,7 +822,7 @@
     right: 0%;
     transition:ease-in-out;
     transition-duration: 1s;
-    box-shadow: -12px 12px 15px -5px black;
+    box-shadow: 12px -12px 15px -5px black;
   }
 
   /* .sorterText{
@@ -872,7 +872,7 @@
     right: 2em;
     bottom: 1em;
     border-radius: 30%;
-    box-shadow: 3px -2px 5px black;
+    /*box-shadow: 3px -2px 5px black;*/
     background-color: antiquewhite;
     padding: 2px;
     width: 40px;
@@ -900,6 +900,8 @@
     justify-content: center;
     display: flex;
     align-content: center;
+    top: -5px;
+    position: relative;
   }
 
   /* @-webkit-keyframes fadeinout {
@@ -911,3 +913,41 @@
     0%,100% { opacity: 0; }
     50% { opacity: 0.8; }
   } */
+
+  .alert {
+    padding: 20px;
+    background-color: #f44336;
+    color: white;
+    opacity: 0.7;
+    transition: opacity 0.6s;
+    margin-bottom: 15px;
+    cursor: unset;
+  }
+  .alert:hover {
+    opacity: 1;
+  }
+
+  .alert.success {background-color: #04AA6D;}
+  .alert.info {background-color: #2196F3;}
+  .alert.warning {background-color: #ff9800;}
+
+  .closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .closebtn:hover {
+    color: black;
+  }
+
+  #notifications {
+      position: fixed;
+      bottom: 0;
+      right: 1em;
+  }

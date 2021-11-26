@@ -25,82 +25,6 @@ const TIMEOUT=15000;
 
 /***
 **
-**	Event listeners
-**
-****/
-function initInputKeyPress(){
-	// Get the input field
-	var contributorInput = document.getElementById("contributorId");
-
-	// Execute a function when the user releases a key on the keyboard
-	contributorInput.addEventListener("keyup", function(event) {
-	  // Number 13 is the "Enter" key on the keyboard
-	  if (event.keyCode === 13) {
-	    // Trigger the action
-	    changeContributor();
-	  }
-	});
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-	window.onscroll = function() {myFunction()};
-
-	function myFunction() {
-	  if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
-	    document.getElementById('upwards').style.opacity = '';
-	  } else {
-	    document.getElementById('upwards').style.opacity = "0";
-	  }
-	}
-});
-
-/***
-**
-**	Cookie utils
-**
-****/
-
-function setCookie(cname, cvalue, exdays) {
-  const d = new Date();
-  d.setTime(d.getTime() + (exdays*24*60*60*1000));
-  let expires = "expires="+ d.toUTCString();
-  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/" + ";secure;samesite=strict";
-}
-
-function getCookie(cname) {
-  let name = cname + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(';');
-  for(let i = 0; i <ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
-}
-
-async function checkContributorCookie() {
-  let contributorId = getCookie("contributorId");
-  if (contributorId != "") {
-   console.log("Will use cookie value of contributorId: " + contributorId);
-	 USER_ID = contributorId;
-  }
-}
-
-async function checkHelpCookie() {
-  let hasHelpAlreadyBeenClosed = getCookie("helpClosed");
-  if (hasHelpAlreadyBeenClosed != "") {
-   console.log("Will use cookie value of helpClosed: " + hasHelpAlreadyBeenClosed);
-  }
-	return hasHelpAlreadyBeenClosed;
-}
-
-/***
-**
 **	Page Loading!
 **
 ****/
@@ -126,47 +50,44 @@ async function loadAll(){
 		showHelp();
 	}
 	await loadContributor();
-	console.log("contrib ok");
+	if(currentContributor!=null){
+		console.log("contrib ok");
+		addNotification("success","Succès","Utilisateur&middot;trice "+currentContributor.pseudo+" chargé&middot;e");
+	} else {
+		addNotification("","Echec","Erreur lors du chargement de l'utilisateur&middot;trice "+USER_ID);
+	}
+
 	await loadLatestObs();
-	console.log("latestObs ok");
-	await loadSomeMore();
-	console.log("more ok");
+	if(latestObs!=null){
+		console.log("latestObs ok");
+		addNotification("success","Succès","Première observation chargée. Nombre total d'observations : "+latestObs.totLines);
+	} else {
+		addNotification("","Echec","Erreur lors du chargement de la dernière observation");
+	}
+
+	// WIP
+	const userData = getFromLocalStorage(currentContributor.idUtilisateur);
+	var pastIds;
+	if(userData!=null){
+		pastIds = userData.ids;
+	}
+	// var pastIds = getFromLocalStorage('ids');
+	if(pastIds!=null){
+		addNotification("info","Information",pastIds.length+" observations déjà connues sur ce navigateur sont en cours de téléchargement");
+		startProgressAnimation();
+		await updateObsFromStorageIds(pastIds);
+		stopProgressAnimation();
+		addNotification("success","Succès",listObservations.observations.length+" observations rechargées");
+	} else {
+		await loadSomeMore();
+		console.log("more ok");
+		activateBtn('loadAll');
+		document.getElementById('loadAll').title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
+		document.getElementById('loadAll').innerHTML = 'Charger les observations';
+	}
 
 	createObserver();
 	console.log("observer ok");
-}
-
-/***
-**
-**	Fetch utils
-**
-****/
-
-async function callAndWaitForJsonAnswer(url) {
-		try {
-			let res = await fetchWithTimeout(url);
-			return await res.json();
-		} catch (error) {
-			if(error.name === 'AbortError'){
-				console.log('Call to '+url+' timed out after '+(TIMEOUT/1000)+'s');
-			} else {
-				console.log('Got error: '+error + ' ...for url: '+url);
-			}
-		}
-}
-
-/* taken here https://dmitripavlutin.com/timeout-fetch-request/ */
-async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = TIMEOUT } = options;
-
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  const response = await fetch(resource, {
-    ...options,
-    signal: controller.signal
-  });
-  clearTimeout(id);
-  return response;
 }
 
 /***
@@ -249,9 +170,7 @@ async function loadContributor(){
 			document.querySelector('.totalScore').title=`${obsValidatedCount}`;
 
 			// user is now loaded, display buttons and tooltips
-			activateBtn('loadAll');
 			document.getElementById('profilePic').title=`Cliquer ici pour afficher les statistiques de ${currentContributor.pseudo}`;
-			document.getElementById('loadAll').title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
 		}
 	}
 	await renderContributor();
@@ -305,7 +224,16 @@ async function getAndAddAllObservations(url) {
 		if(observation==null){
 			alert('Erreur lors du chargement des observations. Veuillez réessayer ultérieurement');
 		} else {
-			listObservations.observations.push(...observation.observations);
+			// preventing duplicates in observations by idData
+			observation.observations.forEach(newObs=>{
+				if (!listObservations.observations.some(o => o.idData === newObs.idData)) {
+					listObservations.observations.push(newObs);
+				} else{
+					console.log("No need to add obs id "+newObs.idData+" as it was already present in list");
+				}
+			});
+
+			// listObservations.observations.push(...observation.observations);
 			renderProgress();
 		}
 		return (observation!=null);
@@ -371,7 +299,10 @@ async function loopLoading(){
 				} else{
 					deactivateLoadAllButton();
 					activateUpdateAllButton();
+					addNotification("success","Succès","Toutes les "+latestObs.totLines+" observations ont bien été chargées.");
 				}
+				// trying to keep list ids storage
+				saveCurrentUserDataInStorage();
 				buttonLoadAll.style.fontStyle='unset';
 				stopProgressAnimation();
 			}
@@ -385,7 +316,7 @@ async function loadSomeMore(){
 
 	if(latestObs!=null && !isMoreLoadingOn && !isLoopLoadingOn){
 
-		if(index<latestObs.totLines){
+		if(listObservations.observations.length<latestObs.totLines && index<latestObs.totLines){
 			isMoreLoadingOn=true;
 			startProgressAnimation();
 
@@ -418,7 +349,8 @@ async function loadSomeMore(){
 				deactivateLoadAllButton();
 				activateUpdateAllButton();
 			}
-
+			// list ids in localStorage
+			saveCurrentUserDataInStorage();
 		} else {
 			console.log("not loading any more, we reached the end!");
 		}
@@ -427,6 +359,156 @@ async function loadSomeMore(){
 	}
 }
 
+function saveCurrentUserDataInStorage(){
+	if(listObservations!=null && currentContributor!=null){
+		var ids = [];
+		var lastModifDate;
+		listObservations.observations.forEach(obs => {
+			if(!ids.includes(obs.idData)){
+				ids.push(obs.idData);
+			}
+			if(lastModifDate==null && obs.dateModif != null){
+				lastModifDate = obs.dateModif;
+			} else if(obs.dateModif != null && lastModifDate!=null && new Date(obs.dateModif)>new Date(lastModifDate)){
+				lastModifDate = obs.dateModif;
+			}
+		});
+		const userData = {
+			"ids": ids,
+			"lastModifDate": lastModifDate,
+			"score": currentContributor.ScoreTotal
+		};
+		console.log("Will attempt to save "+ids.length+" ids to localStorage");
+		putInLocalStorage(currentContributor.idUtilisateur,userData);
+	}
+}
+
+async function updateObsFromStorageIds(pastIds){
+	console.log("Found ids of obs previously loaded! Will try to update them");
+	var cpt=0;
+	var firstObsInPastIds=false;
+	var idFirst = listObservations.observations[0].idData;
+	for (const id of pastIds){
+		// do not want to duplicate the first previously loaded
+		if(idFirst!=id){
+			var currObs = await getOneObservation(id);
+			listObservations.observations.push(currObs);
+			cpt++;
+			if(cpt%10===0){
+				await renderObs();
+				renderProgress();
+			}
+		} else {
+			console.log("Found idFirst in ids "+idFirst);
+			firstObsInPastIds=true;
+		}
+	}
+
+	// render progress, obs...
+	await renderObs();
+	renderProgress();
+	// compare totLines, dateCreation max?
+	console.log("On "+listObservations.totLines+" obs to load, "+listObservations.observations.length+" are currently displayed");
+	// get the remaining obs (totLines helps? not? Load all modified to not add if id already present)
+	if(listObservations.totLines>listObservations.observations.length){
+		var numberMissingObs = listObservations.totLines-listObservations.observations.length;
+		if(firstObsInPastIds){
+			numberMissingObs++;
+		}
+		// we might have, in time :
+		// latest (first) obs - missing obs? - obs already loaded by id - missing obs, never loaded?
+		console.log("missing "+numberMissingObs+" obs");
+		// starting at 2 because we already have the first obs
+		var cpt = 2;
+		var fastForward=false;
+		for(cpt; cpt< numberMissingObs; cpt=cpt+1){
+
+			let paginEnd=cpt;
+			let paginStart = cpt;
+			let obsUrl=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+USER_ID;
+			console.log('complete after storage ids : loading obs from '+obsUrl);
+
+			let observation = await callAndWaitForJsonAnswer(obsUrl);
+			// add all
+			if(observation==null){
+				alert('Erreur lors du chargement des observations. Veuillez réessayer ultérieurement');
+				break;
+			} else {
+				// preventing duplicates in observations by idData
+				observation.observations.forEach(newObs=>{
+					if (!listObservations.observations.some(o => o.idData === newObs.idData)) {
+						listObservations.observations.push(newObs);
+					} else{
+						console.log("No need to add obs id "+newObs.idData+" as it was already present in list");
+						fastForward=true;
+					}
+				});
+				if(fastForward){
+					break;
+				}
+				renderProgress();
+			}
+		}
+		await renderObs();
+
+		if(fastForward){
+			// means we can fast forward if still needed!
+			if(listObservations.totLines>listObservations.observations.length){
+				// keep going. But let's bypass all the obs already loaded...
+				var cptEnd = listObservations.observations.length+1;
+				// 1 2 12 4.
+				// 19>15 On veut charger de 19-4 à 19
+				// (1) - (2 3) - 4 5 6 7 8 9 10 11 12 13 14 15 - 16 17 18 19
+
+				for(cptEnd; cptEnd<= listObservations.totLines; cptEnd=cptEnd+1){
+
+					let paginEnd=cptEnd;
+					let paginStart = cptEnd;
+					let obsUrlEnd=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+USER_ID;
+					console.log('complete END after storage ids : loading obs from '+obsUrlEnd);
+
+					let observation = await callAndWaitForJsonAnswer(obsUrlEnd);
+					// add all
+					if(observation==null){
+						alert('Erreur lors du chargement des observations. Veuillez réessayer ultérieurement');
+						break;
+					} else {
+						// preventing duplicates in observations by idData
+						observation.observations.forEach(newObs=>{
+							if (!listObservations.observations.some(o => o.idData === newObs.idData)) {
+								listObservations.observations.push(newObs);
+							} else{
+								console.log("Should not happen : no need to add obs id "+newObs.idData+" as it was already present in list");
+							}
+						});
+						renderProgress();
+					}
+				}
+				await renderObs();
+			}
+		}
+		if(listObservations.totLines>listObservations.observations.length){
+			console.log("Something wrong happened");
+			// error?
+			// activate load all button ?
+			activateBtn('loadAll');
+			// useless? already the case?
+			inactivateBtn('updateObs');
+		} else {
+			saveCurrentUserDataInStorage();
+			// all loaded, inactivate load all (useless, already?)
+			inactivateBtn('loadAll');
+			// update button activated
+			activateBtn('updateObs');
+		}
+
+	} else {
+		// all loaded, inactivate load all (useless, already?)
+		inactivateBtn('loadAll');
+		// update button activated
+		activateBtn('updateObs');
+	}
+}
 
 function buildProgress(idStatus){
     let html = '';
@@ -644,9 +726,29 @@ async function updateOneObservation(obs){
 	return changed;
 }
 
+async function loadRightAmountMissingObs(diff){
+	// load the right amount needed!
+	var paginStart=1;
+
+	let obsUrlDiff=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+diff+"&idUtilisateur="+USER_ID;
+	console.log('Diff : loading obs from '+obsUrlDiff);
+
+	if(await getAndAddAllObservations(obsUrlDiff)){
+		// rendering
+		await renderObs();
+		// newLoadedObsCpt = diff;
+		listObservations.totLines=latestObs.totLines;
+	} else {
+		// Error while loading : break
+		console.log('Diff : error while loading new obs');
+	}
+	return newLoadedObsCpt;
+}
+
 async function updateObservations(){
 	var callCpt=0;
 	var updatedCpt=0;
+	var newLoadedObsCpt=0;
 	startProgressAnimation();
 
 	await Promise.all(listObservations.observations.map(async (obs) => {
@@ -663,8 +765,46 @@ async function updateObservations(){
 		// refresh view
 		renderObs();
 	}
-
 	console.log('Called '+callCpt+' times the update for non validated observations, made '+updatedCpt+' changes to current list');
+
+	// One call to get a refreshed totLines - if matching, we have all. If not, need to loadLoop until done...
+	const urlLatestObservation=inpnUrlBase+"data?paginStart=1&paginEnd=1&idUtilisateur="+USER_ID;
+	let observation = await callAndWaitForJsonAnswer(urlLatestObservation);
+	if(observation!=null){
+		latestObs = observation;
+		var diff = latestObs.totLines-listObservations.totLines;
+		console.log("latestObs up to date. "+diff+" new obs to load");
+		if (diff>0){
+			// // load the right amount needed!
+			// var paginStart=1;
+			//
+			// let obsUrlDiff=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+diff+"&idUtilisateur="+USER_ID;
+			// console.log('Diff : loading obs from '+obsUrl);
+			//
+			// if(await getAndAddAllObservations(obsUrlDiff)){
+			// 	// rendering
+			// 	await renderObs();
+			// 	newLoadedObsCpt = diff;
+			// 	listObservations.totLines=latestObs.totLines;
+			// } else {
+			// 	// Error while loading : break
+			// 	console.log('Diff : error while loading new obs');
+			// }
+			newLoadedObsCpt = await loadRightAmountMissingObs(diff);
+		}
+		listObservations = observation;
+		renderProgress();
+	} else {
+		alert('Erreur lors du chargement de la première observation. Veuillez réessayer ultérieurement');
+	}
+	if(updatedCpt>0&&newLoadedObsCpt>0){
+		// we had changes!
+		// refresh score as well
+		loadContributor();
+		// trying to keep list ids storage
+		saveCurrentUserDataInStorage();
+	}
+	console.log(updatedCpt+'updated validated observations and '+newLoadedObsCpt+' new loaded one(s)');
 	stopProgressAnimation();
 }
 
@@ -785,7 +925,7 @@ function toggleLeftFilters(){
 	} else {
 		areFiltersDisplayed=true;
 		document.querySelector('.leftFilters').style.left='0';
-		document.querySelector('.leftFilters').style.boxShadow='12px 12px 15px -5px black';
+		document.querySelector('.leftFilters').style.boxShadow='-12px -12px 15px -5px black';
 		document.getElementById('toggleLeftFilters').innerHTML='Masquer les filtres';
 		document.getElementById('toggleLeftFilters').title="Cliquer ici pour masquer les filtres par catégories"
 	}
@@ -800,7 +940,7 @@ function toggleRightSorters(){
 	} else {
 		areSortersDisplayed=true;
 		document.querySelector('.rightSorters').style.right='0';
-		document.querySelector('.rightSorters').style.boxShadow='-12px 12px 15px -5px black';
+		document.querySelector('.rightSorters').style.boxShadow='12px -12px 15px -5px black';
 		document.getElementById('toggleRightSorters').innerHTML='Masquer les tris';
 		document.getElementById('toggleRightSorters').title="Cliquer ici pour masquer les tris"
 	}
