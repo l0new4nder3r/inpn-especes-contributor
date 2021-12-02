@@ -102,6 +102,7 @@ async function showDetails(idData){
 			  				<div id="map"></div>
 			  				<p style="font-style:italic;">${chosenObs.commune} (${chosenObs.numDepartement}), le ${creationDate}</p>
 								${commentaire}
+								<p id="quest"></p>
 								<p>${chosenObs.scoreTotal} points</p>
 								<div class="scoreDetails"></div>`;
 
@@ -196,6 +197,19 @@ async function showDetails(idData){
 			}
 		}
 	}
+
+	if(chosenObs.questData!=null && chosenObs.questData.idCa!=null){
+		quest = `<div class="quest" title="Soumise dans le cadre d'une quête">🎯</div>`;
+		var questUrl = `https://inpn.mnhn.fr/inpn-especes/quetes/forms/${chosenObs.questData.idCa}`;
+		var questDetails = await callAndWaitForJsonAnswer(questUrl);
+		if(questDetails==null || questDetails.libelle==null){
+			console.log('Erreur lors de l\'appel des détails de quête');
+		} else {
+			document.getElementById('quest').title="Observation soumise dans le cadre d'une quête";
+			document.getElementById('quest').innerHTML=`<a class="questLink" href="https://determinobs.fr/#/quetes/${chosenObs.questData.idCa}" target="_blank">🎯 ${questDetails.libelle}</a>`;
+		}
+	}
+
 	focus.style.cursor="unset";
 }
 
@@ -478,7 +492,11 @@ function showSlides(n) {
 function toggleCoverContain(image){
 	if(image.style.objectFit=='cover'){
 		image.style.objectFit='contain';
+		document.querySelector('.prev').style.color='black';
+		document.querySelector('.next').style.color='black';
 	} else {
 		image.style.objectFit='cover';
+		document.querySelector('.prev').style.color='white';
+		document.querySelector('.next').style.color='white';
 	}
 }

@@ -60,7 +60,9 @@ async function loadAll(){
 	await loadLatestObs();
 	if(latestObs!=null){
 		console.log("latestObs ok");
-		addNotification("success","Succès","Première observation chargée. Nombre total d'observations : "+latestObs.totLines);
+		if(latestObs.totLines>0){
+			addNotification("success","Succès","Première observation chargée. Nombre total d'observations restant : "+(latestObs.totLines-1));
+		}
 	} else {
 		addNotification("","Echec","Erreur lors du chargement de la dernière observation");
 	}
@@ -600,6 +602,12 @@ async function renderObs() {
 					validStatus=obs.validation.idStatus;
 					validLabel=obs.validation.lbStatus;
 				}
+
+				var quest = '';
+				if(obs.questData!=null && obs.questData.idCa!=null){
+					quest = `<div class="quest" title="Soumise dans le cadre d'une quête">🎯</div>`;
+				}
+
 	      let htmlSegment = `<div id="${obs.idData}" class="obs status${validStatus} go${obs.groupSimple}"
 														onclick="showDetails(${obs.idData})" ${filtered}>
 	                            <img src="${obs.photos[0].thumbnailFileUri}" >
@@ -613,9 +621,11 @@ async function renderObs() {
 	                          	<div title="${validLabel}" class="progress">
 	                            	${progress}
 	                        		</div>
+
 															<div class="taxon" title="${obs.lbGroupSimple}">
 																<span style="font-size: 30px;">${groupesSimplesUnicode.get(obs.groupSimple)}</span>
 															</div>
+															${quest}
 	                        </div>`;
 				html += htmlSegment;
 	    });
@@ -746,6 +756,7 @@ async function loadRightAmountMissingObs(diff){
 }
 
 async function updateObservations(){
+	addNotification("info","Information","Démarrage de la mise à jour des observations non encore validées");
 	var callCpt=0;
 	var updatedCpt=0;
 	var newLoadedObsCpt=0;
@@ -775,36 +786,24 @@ async function updateObservations(){
 		var diff = latestObs.totLines-listObservations.totLines;
 		console.log("latestObs up to date. "+diff+" new obs to load");
 		if (diff>0){
-			// // load the right amount needed!
-			// var paginStart=1;
-			//
-			// let obsUrlDiff=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+diff+"&idUtilisateur="+USER_ID;
-			// console.log('Diff : loading obs from '+obsUrl);
-			//
-			// if(await getAndAddAllObservations(obsUrlDiff)){
-			// 	// rendering
-			// 	await renderObs();
-			// 	newLoadedObsCpt = diff;
-			// 	listObservations.totLines=latestObs.totLines;
-			// } else {
-			// 	// Error while loading : break
-			// 	console.log('Diff : error while loading new obs');
-			// }
 			newLoadedObsCpt = await loadRightAmountMissingObs(diff);
 		}
-		listObservations = observation;
 		renderProgress();
+		renderObs();
 	} else {
 		alert('Erreur lors du chargement de la première observation. Veuillez réessayer ultérieurement');
 	}
 	if(updatedCpt>0&&newLoadedObsCpt>0){
 		// we had changes!
+		addNotification("success","Succès",updatedCpt+" observations mises à jour et "+newLoadedObsCpt+" nouvelles observations chargées");
 		// refresh score as well
 		loadContributor();
 		// trying to keep list ids storage
 		saveCurrentUserDataInStorage();
+	} else {
+		addNotification("success","Succès","Toutes les observations étaient bien à jour");
 	}
-	console.log(updatedCpt+'updated validated observations and '+newLoadedObsCpt+' new loaded one(s)');
+	console.log(updatedCpt+' updated validated observations and '+newLoadedObsCpt+' new loaded one(s)');
 	stopProgressAnimation();
 }
 

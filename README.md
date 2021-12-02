@@ -60,6 +60,10 @@ Page de stats à rendre plus sexy
 - gestion notifs si différences lors d'un update! score? date modif? pastilles si mises à jour
 - améliorer/ajouter popin notif messages en bas à droite!
 
+- FIX : si chargement en cours, changement user casse tout!
+
+- fix : pointer-events none pour désac boutons : bof bof, ko sélection user / charger tout
+
 ### Coté code...
 - refacto ? méthodes plus courtes, code redondant...
 - gestion de la complexité!

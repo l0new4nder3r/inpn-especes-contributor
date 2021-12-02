@@ -951,3 +951,15 @@
       bottom: 0;
       right: 1em;
   }
+
+  .quest {
+    left: 98%;
+    position: relative;
+    width: max-content;
+  }
+
+  .questLink{
+    text-decoration: none;
+    cursor: help;
+    font-style: italic;
+  }
