@@ -688,8 +688,12 @@ function sortObs(){
 	renderObs();
 }
 
-const itemReplacer = (array, oldItem, newItem) =>
-  array.map(item => item === oldItem ? newItem : item);
+function replaceObjectInArray(array, oldItem, newItem){
+	const existingObj = array.find(item => item.idData === oldItem.idData);
+	if(existingObj) {
+	  Object.assign(existingObj, newItem);
+	}
+}
 
 async function getOneObservation(id){
 	const getOneUrl=inpnUrlBase+"data/"+id;
@@ -724,7 +728,7 @@ async function updateOneObservation(obs){
 		//console.log(updatedObs);
 		if(compareStringDatesModif(updatedObs,obs)<0){
 			// we want to keep the new one
-			itemReplacer(listObservations.observations,obs,updatedObs);
+			replaceObjectInArray(listObservations.observations,obs,updatedObs);
 			changed = true;
 			console.log('Updated obs id '+updatedObs.idData+' - dateModif '+updatedObs.dateModif+' > '+obs.dateModif);
 		} else {
@@ -793,7 +797,7 @@ async function updateObservations(){
 	} else {
 		alert('Erreur lors du chargement de la première observation. Veuillez réessayer ultérieurement');
 	}
-	if(updatedCpt>0&&newLoadedObsCpt>0){
+	if(updatedCpt>0||newLoadedObsCpt>0){
 		// we had changes!
 		addNotification("success","Succès",updatedCpt+" observations mises à jour et "+newLoadedObsCpt+" nouvelles observations chargées");
 		// refresh score as well

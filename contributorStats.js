@@ -40,8 +40,6 @@ async function showStats(){
 											<div class="statsContents">
 											</div>`;
 
-
-
 		let statsContents = document.querySelector('.statsContents');
 		statsContents.innerHTML += `<div class="statsLeft"></div>
 																<div class="statsRight"></div>`;
@@ -63,6 +61,7 @@ async function showStats(){
 		let min = listObservations.observations[0].scoreTotal;
 		let max = 0;
 		let sum = 0;
+    let validated = 0;
 		listObservations.observations.forEach(obs=>{
 			if(obs.scoreTotal<min){
 				min=obs.scoreTotal;
@@ -71,6 +70,9 @@ async function showStats(){
 				max=obs.scoreTotal;
 			}
 			sum +=obs.scoreTotal;
+      if(obs.isValidated=="true"){
+        validated++;
+      }
 		});
 
 		let averageLoaded = (sum/listObservations.observations.length).toFixed(0);;
@@ -85,6 +87,7 @@ async function showStats(){
 			globalAverageScore=`<p>Score moyen (global) : ${averageGlobal} points</p>`;
 		}
 		leftStatsContents.innerHTML += `<p>Observations soumises : ${listObservations.totLines}</p>
+                        <p>Observations validées : ${validated}</p>
 												<p>Score minimum${asterisk} : ${min} points</p>
 												<p>Score moyen${asterisk} : ${averageLoaded} points</p>
 												<p>Score maximum${asterisk} : ${max} points</p>
@@ -267,52 +270,44 @@ async function buildStatusGraph(){
 	const validationStatusChart = new Chart(validationStatusCanvas.getContext('2d'), statusConfig);
 }
 
-// todo limiter à celles validées seulement?
 async function buildScoresGraph(){
-	let count0to50=0;
-	let count50to100=0;
-	let count100to200=0;
-	let count200to500=0;
-	let count500to1000=0;
-	let count1000to2000=0;
-	let count2000AndMore=0;
+  let count0to100=0;
+  let count100to1000=0;
+  let count1000to2000=0;
+  let count2000to5000=0;
+  let count5000AndMore=0;
 
 	listObservations.observations.forEach(obs=>{
 		if(obs.validation.idStatus==5){
-			if(obs.scoreTotal>2000){
-				count2000AndMore++;
+			if(obs.scoreTotal>5000){
+				count5000AndMore++;
+			} else if(obs.scoreTotal>2000){
+				count2000to5000++;
 			} else if(obs.scoreTotal>1000){
 				count1000to2000++;
-			} else if(obs.scoreTotal>500){
-				count500to1000++;
-			} else if(obs.scoreTotal>200){
-				count200to500++;
 			} else if(obs.scoreTotal>100){
-				count100to200++;
-			} else if(obs.scoreTotal>50){
-				count50to100++;
+				count100to1000++;
 			} else {
-				count0to50++;
+				count0to100++;
 			}
 		}
 	});
 
 	const scoresLabels = [
-		'0 à 50 pts',
-		'50 à 100 pts',
-		'100 à 200 pts',
-		'200 à 500 pts',
-		'500 à 1000 pts',
+		'0 à 100 pts',
+		'100 à 1000 pts',
 		'1000 à 2000 pts',
-		'2000 pts et plus'
+		'2000 à 5000 pts',
+		'5000 et plus'
 	];
 	const scoresData = {
 		labels: scoresLabels,
 		datasets: [{
 			// label: 'Répartition des observations validées par score',
-			backgroundColor: 'rgb(255, 99, 132)',
-			borderColor: 'rgb(255, 99, 132)',
-			data: [count0to50, count50to100, count100to200, count200to500, count500to1000, count1000to2000, count2000AndMore],
+			backgroundColor: ["rgba(255,99, 132, 0.2)","rgba(255, 159, 64, 0.2)","rgba(255, 205, 86, 0.2)","rgba(75,192, 192, 0.2)","rgba(54, 162, 235, 0.2)"],
+			borderColor: ["rgb(255, 99, 132)","rgb(255, 159,64)","rgb(255, 205, 86)","rgb(75, 192, 192)","rgb(54, 162, 235)"],
+			data: [count0to100, count100to1000, count1000to2000, count2000to5000, count5000AndMore],
+      "borderWidth":1
 		}]
 	};
 	const scoresConfig = {

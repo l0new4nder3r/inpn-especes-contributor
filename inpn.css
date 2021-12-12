@@ -172,6 +172,7 @@
       top: 46.5px;
       position: relative;
       display: flex;
+      background-color: snow;
   }
 
 	/* Slideshow container */
@@ -619,7 +620,7 @@
 		/*position: relative;*/
 		/*top: -15em;*/
     padding: 3em;
-    background-color: ivory;
+    /*background-color: ivory;*/
 	}
 
   .canvas > h4 {
