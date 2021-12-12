@@ -185,7 +185,7 @@ async function showDetails(idData){
 
 	// rare species
 	// espèce ayant moins de 5000 données sur l'INPN https://openobs.mnhn.fr/api/occurrences/stats/taxon/98651
-	if(chosenObs.cdRef!=null){
+	if(chosenObs.cdRef!=null&&chosenObs.cdRef!=''){
 		var occurrencesUrl = `https://openobs.mnhn.fr/api/occurrences/stats/taxon/${chosenObs.cdRef}`;
 		var occurrences = await callAndWaitForJsonAnswer(occurrencesUrl);
 		if(occurrences==null || occurrences.occurrenceCount==null){
