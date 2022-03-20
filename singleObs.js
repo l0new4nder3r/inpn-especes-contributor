@@ -20,16 +20,7 @@ async function loadAll () {
 
     let observationId;
     if (urlParams.has("random") && urlParams.get("random")==="true") {
-        while (observationId==null) {
-            // get a random number between one and a million
-            // TODO : get the max id from current apis?
-            const randomId = getRandomInt(1,1000000);
-
-            // test if it matches an existing observation
-            if (await exists(randomId)) {
-                observationId = randomId;
-            }
-        }
+        observationId = getValidRandomObservationId ();
     }
 
     if (urlParams.has("id")) {
