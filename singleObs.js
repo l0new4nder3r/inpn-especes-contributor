@@ -20,7 +20,7 @@ async function loadAll () {
 
     let observationId;
     if (urlParams.has("random") && urlParams.get("random")==="true") {
-        observationId = getValidRandomObservationId ();
+        observationId = await getValidRandomObservationId ();
     }
 
     if (urlParams.has("id")) {
