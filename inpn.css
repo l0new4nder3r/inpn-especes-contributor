@@ -20,12 +20,18 @@
 
     .tooltip {
       position: relative;
-      display: inline-block;
+      cursor: copy;
+      font-size: x-large;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding-left: 2em;
+      opacity: 0.7;
     }
 
     .tooltip .tooltiptext {
       visibility: hidden;
-      width: 140px;
+      width: 120px;
       background-color: #555;
       color: #fff;
       text-align: center;
@@ -33,11 +39,12 @@
       padding: 5px;
       position: absolute;
       z-index: 1;
-      bottom: 150%;
-      left: 50%;
+      bottom: 83%;
+      left: 95%;
       margin-left: -75px;
       opacity: 0;
       transition: opacity 0.3s;
+      font-size: small;
     }
 
     .tooltip .tooltiptext::after {
@@ -54,6 +61,12 @@
     .tooltip:hover .tooltiptext {
       visibility: visible;
       opacity: 1;
+    }
+
+    #shareLink{
+      visibility: collapse;
+      float: left;
+      position: absolute;
     }
 
     .container {
@@ -194,6 +207,7 @@
     width: inherit;
     background-color: lightgreen;
     z-index: 1001;
+    display: flex;
   }
 
   .popinTitle {
@@ -1007,3 +1021,72 @@
     cursor: help;
     font-style: italic;
   }
+
+  .singlePseudo {
+    display: flex;
+    align-items: center;
+    position: relative;
+    left: 65%;
+  }
+
+  .singleScore {
+    display: flex;
+    align-items: center;
+    left: 70%;
+    position: relative;
+  }
+
+  #profilePicSingle {
+    height:100%;
+    right: 0%;
+    position: absolute;
+    object-fit: cover;
+  }
+
+  .random {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 2em;
+    font-size: x-large;
+    text-decoration: unset;
+    opacity: 0.7;
+  }
+
+  .user {
+    width: 33%;
+    float: right;
+    padding-inline-start: 4em;
+    display: flex;
+  }
+
+  /* trying to set rules for phones or narrow screens */
+@media (max-width: 400px), screen and (orientation: portrait) {
+  .detailsContents,
+  .statsContents {
+    display: block;
+  }
+
+  .photos {
+    position: relative;
+    margin-left: 20px;
+    width: 90%;
+    height: 52em;
+    left: 2em;
+  }
+
+  .infos{
+    position: relative;
+    padding: 2em;
+    width: 90%;
+    left: 2em;
+  }
+
+  .singlePseudo {
+    left: 5%;
+  }
+
+  .singleScore {
+    left: 34%;
+  }
+}

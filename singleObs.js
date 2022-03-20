@@ -11,11 +11,9 @@ window.onload = function () {
 };
 
 async function loadAll () {
-    // get obs id from param?
 
     const queryString = window.location.search;
-    // console.log(queryString);
-    // ?observationId=xxx
+    // ?id=xxx
     const urlParams = new URLSearchParams(queryString);
 
     let observationId;
@@ -66,28 +64,27 @@ async function addUserDetails (contributor) {
 
     // just after popintop at the end add a div with user infos
     const popinTop = document.querySelector(".popinTop");
-    popinTop.style.display="flex";
 
     const randomNext = await getValidRandomObservationId();
-    const randomDivContent = `<a href="singleObs.html?id=${randomNext}" class="random" title="Consulter une observation au hasard!" style="display: flex;align-items: center;position: relative;padding-left: 2em;font-size: x-large;text-decoration: unset;opacity: 0.7;">🔀</a>`;
+    const randomDivContent = `<a href="singleObs.html?id=${randomNext}" class="random" title="Consulter une observation au hasard!">🔀</a>`;
     popinTop.insertAdjacentHTML("beforeend", randomDivContent);
 
-    const userDivContent = "<div class=\"user\" style=\"width: 67%;float: right;padding-inline-start: 4em;display: flex;\"></div>";
+    const userDivContent = "<div class=\"user\"></div>";
     popinTop.insertAdjacentHTML("beforeend", userDivContent);
 
     const userDiv = document.querySelector(".user");
 
     if (contributor!=null) {
-        const userInTop = `<div title="${contributor.prenom} ${contributor.nom}" class="pseudo" style="display: flex;align-items: center;position: relative;left: 65%;">${contributor.pseudo}</div>`;
+        const userInTop = `<div title="${contributor.prenom} ${contributor.nom}" class="pseudo singlePseudo">${contributor.pseudo}</div>`;
         userDiv.insertAdjacentHTML("beforeend", userInTop);
 
-        const userScore = `<div class="totalScore" style="display: flex;align-items: center;left: 70%;position: relative;">${contributor.ScoreTotal} points</div>`;
+        const userScore = `<div class="totalScore singleScore">${contributor.ScoreTotal} points</div>`;
         userDiv.insertAdjacentHTML("beforeend", userScore);
 
         // link to inpn page, on user picture
-        const userPicture = `<a href="/${Utils.getUrlPath()}/index.html?userId=${contributor.idUtilisateur}" target="_blank" title="Consulter toutes les observations de ${contributor.pseudo} (nouvelle page)"><img id="profilePic" alt="contributor profile picture" src="${contributor.avatar}" style="height:100%;right: 0%;position: absolute;object-fit: cover;"></a>`;
+        const userPicture = `<a href="/${Utils.getUrlPath()}/index.html?userId=${contributor.idUtilisateur}" target="_blank" title="Consulter toutes les observations de ${contributor.pseudo} (nouvelle page)"><img id="profilePicSingle" alt="contributor profile picture" src="${contributor.avatar}"></a>`;
         userDiv.insertAdjacentHTML("beforeend", userPicture);
-        const profPic = document.getElementById("profilePic");
+        const profPic = document.getElementById("profilePicSingle");
         profPic.style.width=profPic.clientHeight+"px";
 
         // adding number of validated obs as a tooltip for score

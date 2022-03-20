@@ -76,6 +76,7 @@ export function initObservationContent (chosenObs, focus) {
 
     const htmlBegin = `<div class="popinTop">
               <div class="popinTitle">Détails de l'observation n°${chosenObs.idData}</div>
+              <div class="tooltip" id="share">🔗<input type="text" id="shareLink" value="https://www.nbuchon.me/inpn/singleObs.html?id=${chosenObs.idData}" style="visibility: collapse;"><span class="tooltiptext" id="myTooltip">Partager cette observation</span></div>
               <div id="closeDetails" class="tinyButton">X</div>
             </div>
             <div class="detailsContents">`;
@@ -244,7 +245,6 @@ function buildInfos (chosenObs) {
 							${validated}
 							${titleLink}
 							${correctedName}
-              <div class="tooltip" id="share" style="cursor: copy;display: block;width: 1em;height: 1em;">🔗<input type="text" id="shareLink" value="https://www.nbuchon.me/inpn/singleObs.html?id=${chosenObs.idData}" style="visibility: collapse;"><span class="tooltiptext" id="myTooltip">Partager cette observation</span></div>
 							<div class="protectionStatus"></div>
 							${statusComment}
 							<p>${chosenObs.lbGroupSimple}</p>
