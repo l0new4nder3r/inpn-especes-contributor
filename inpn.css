@@ -2,7 +2,7 @@
 
   /* variable for background color of arrows hovering in detailed obs pictures */
     :root {
-      --arrowsBackColour: (rgba(0,0,0,0.8));
+      --arrowsBackColour: rgba(0,0,0,0.8);
     }
 
     html {
