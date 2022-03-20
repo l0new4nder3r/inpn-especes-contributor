@@ -14,7 +14,7 @@ async function loadAll () {
     // get obs id from param?
 
     const queryString = window.location.search;
-    console.log(queryString);
+    // console.log(queryString);
     // ?observationId=xxx
     const urlParams = new URLSearchParams(queryString);
 
@@ -48,14 +48,8 @@ async function loadAll () {
             // get associated user
             const userId = obs.idUtilisateur;
             const urlContributor=inpnUrlBase+"contributor/"+userId;
-
             const contributor = await Utils.callAndWaitForJsonAnswer(urlContributor, TIMEOUT);
-
-            if (contributor!=null) {
-                addUserDetails(contributor);
-            } else {
-                alert("Erreur lors du chargement du user pour l'ID "+userId);
-            }
+            addUserDetails(contributor);
         } else {
             alert("Erreur lors du chargement de l'observation pour l'ID "+observationId);
         }
@@ -84,7 +78,7 @@ async function addUserDetails (contributor) {
     popinTop.style.display="flex";
 
     const randomNext = await getValidRandomObservationId();
-    const randomDivContent = `<a href="singleObs.html?observationId=${randomNext}" class="random" title="Consulter une observation au hasard!" style="display: flex;align-items: center;position: relative;padding-left: 2em;font-size: x-large;text-decoration: unset;opacity: 0.7;">🔄</a>`;
+    const randomDivContent = `<a href="singleObs.html?observationId=${randomNext}" class="random" title="Consulter une observation au hasard!" style="display: flex;align-items: center;position: relative;padding-left: 2em;font-size: x-large;text-decoration: unset;opacity: 0.7;">🔀</a>`;
     popinTop.insertAdjacentHTML("beforeend", randomDivContent);
 
     const userDivContent = "<div class=\"user\" style=\"width: 67%;float: right;padding-inline-start: 4em;display: flex;\"></div>";
@@ -92,27 +86,33 @@ async function addUserDetails (contributor) {
 
     const userDiv = document.querySelector(".user");
 
-    const userInTop = `<div title="${contributor.prenom} ${contributor.nom}" class="pseudo" style="display: flex;align-items: center;position: relative;left: 65%;">${contributor.pseudo}</div>`;
-    userDiv.insertAdjacentHTML("beforeend", userInTop);
+    if (contributor!=null) {
+        const userInTop = `<div title="${contributor.prenom} ${contributor.nom}" class="pseudo" style="display: flex;align-items: center;position: relative;left: 65%;">${contributor.pseudo}</div>`;
+        userDiv.insertAdjacentHTML("beforeend", userInTop);
 
-    const userScore = `<div class="totalScore" style="display: flex;align-items: center;left: 70%;position: relative;">${contributor.ScoreTotal} points</div>`;
-    userDiv.insertAdjacentHTML("beforeend", userScore);
+        const userScore = `<div class="totalScore" style="display: flex;align-items: center;left: 70%;position: relative;">${contributor.ScoreTotal} points</div>`;
+        userDiv.insertAdjacentHTML("beforeend", userScore);
 
-    // link to inpn page, on user picture
-    const userPicture = `<a href="/${Utils.getUrlPath()}/index.html?userId=${contributor.idUtilisateur}" target="_blank" title="Consulter toutes les observations de ${contributor.pseudo} (nouvelle page)"><img id="profilePic" alt="contributor profile picture" src="${contributor.avatar}" style="height:100%;right: 0%;position: absolute;"></a>`;
-    userDiv.insertAdjacentHTML("beforeend", userPicture);
+        // link to inpn page, on user picture
+        const userPicture = `<a href="/${Utils.getUrlPath()}/index.html?userId=${contributor.idUtilisateur}" target="_blank" title="Consulter toutes les observations de ${contributor.pseudo} (nouvelle page)"><img id="profilePic" alt="contributor profile picture" src="${contributor.avatar}" style="height:100%;right: 0%;position: absolute;object-fit: cover;"></a>`;
+        userDiv.insertAdjacentHTML("beforeend", userPicture);
+        const profPic = document.getElementById("profilePic");
+        profPic.style.width=profPic.clientHeight+"px";
 
-    // adding number of validated obs as a tooltip for score
-    // validated obs API call
-    const urlValidatedObservations="https://inpn.mnhn.fr/inpn-especes/data?page=0&size=1&filtreStatutValidation=5&userIds="+contributor.idUtilisateur+"&sort=-datePublished";
-    const response = await Utils.callAndWaitForJsonAnswer(urlValidatedObservations, TIMEOUT);
-    let obsValidatedCount;
-    if (response!=null && response.page!=null && response.page.totalElements!=null) {
-        obsValidatedCount=response.page.totalElements + " observations validées";
+        // adding number of validated obs as a tooltip for score
+        // validated obs API call
+        const urlValidatedObservations="https://inpn.mnhn.fr/inpn-especes/data?page=0&size=1&filtreStatutValidation=5&userIds="+contributor.idUtilisateur+"&sort=-datePublished";
+        const response = await Utils.callAndWaitForJsonAnswer(urlValidatedObservations, TIMEOUT);
+        let obsValidatedCount;
+        if (response!=null && response.page!=null && response.page.totalElements!=null) {
+            obsValidatedCount=response.page.totalElements + " observations validées";
+        } else {
+            obsValidatedCount="Erreur au chargement du nombre d'observations validées :(";
+        }
+        document.querySelector(".totalScore").title=`${obsValidatedCount}`;
     } else {
-        obsValidatedCount="Erreur au chargement du nombre d'observations validées :(";
+        userDiv.insertAdjacentHTML("beforeend", "<div>Erreur lors du chargement de l'utilisateur&middot;trice</div>");
     }
-    document.querySelector(".totalScore").title=`${obsValidatedCount}`;
 }
 
 async function getValidRandomObservationId () {
@@ -133,7 +133,7 @@ async function getValidRandomObservationId () {
 async function exists (observationId) {
     const getOneUrl=inpnUrlBase+"data/"+observationId;
     const randomObservation = await Utils.callAndWaitForJsonAnswer(getOneUrl, TIMEOUT);
-    console.log(randomObservation);
+    // console.log(randomObservation);
     return randomObservation!==undefined;
 }
 
