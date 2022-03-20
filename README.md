@@ -61,14 +61,14 @@ En plus de devoir gérer autrement les tooltips/messages d'information et une al
 A tester mieux pour définir ce qui ne va pas, pourrait mieux aller :
 
 * page principale
-** ipad Air : menu KO, obs hauteur ko (largeur x3 bof) filters ko
-** obs : si écran large, découpage en 4 sinon en 2 ?
+  * ipad Air : menu KO, obs hauteur ko (largeur x3 bof) filters ko
+  * obs : si écran large, découpage en 4 sinon en 2 ?
 
 * Responsive popin détails
-** ipad air : ko
+  * ipad air : ko
 
 * Responsive popin de stats
-** ipad air : ko graphs cassés
+  * ipad air : ko graphs cassés
 
 Attention, la détection "touch" en JS inhibe les "hover"? Comment gérer cela? Plusieurs choses ne fonctionnent pas en tactile, comme la loupe - les enlever si mode tactile détecté, dans l'attente d'une alternative?
 
@@ -92,12 +92,12 @@ Problèmes à travailler, corrections à effectuer :
 * Tris des observations : possibilité de jouer montant/descendant? Avec quelle interface? Flèches haut/bas ?
 * Ne garder qu'un seul bouton? "Charger" qui devient "Mise à jour" si le total est ok ?
 * Gestion de nouvelles notifications, si différences trouvées lors d'un update
-** Le gérer à partir d'une modification du dernier score enregistré, ou de la dernière date de modification mémorisée?
-** Permettrait de mettre des pastilles de "changement" sur les observations dont les détails ont changé depuis la dernière fois.
-** Au rechargement, "render" ajoute pastille sur les obs mises à jour récemment (date modification > précédente enregistrée)
-** Clic sur détail = supprime notif (mais gestion d'une liste des ids d'obs avec modif récente - juste mémoire, ou stockage local aussi?)
-** Quelle possibilité pour enlever toutes les pastilles sans tout cliquer?
-** Attention au premier chargement à ne pas avoir ces pastilles partout.
+  * Le gérer à partir d'une modification du dernier score enregistré, ou de la dernière date de modification mémorisée?
+  * Permettrait de mettre des pastilles de "changement" sur les observations dont les détails ont changé depuis la dernière fois.
+  * Au rechargement, "render" ajoute pastille sur les obs mises à jour récemment (date modification > précédente enregistrée)
+  * Clic sur détail = supprime notif (mais gestion d'une liste des ids d'obs avec modif récente - juste mémoire, ou stockage local aussi?)
+  * Quelle possibilité pour enlever toutes les pastilles sans tout cliquer?
+  * Attention au premier chargement à ne pas avoir ces pastilles partout.
 * Améliorer les notifications de messages en bas à droite - disparition auto au bout de 30 sec, sauf pour la dernière, sauf si erreur ?
 * Lors d'un chargement en cours, le changement de user casse tout!? A reproduire, et si confirmer, empêcher - stopper les chargements avant ? Devrait être le cas en théorie...
 * "Pointer-events: none;" pour désactiver les boutons : bof bof, ko sélection user / charger tout à reprendre. Juste faire bouton qui ne réagit plus ? Signifierait pas de changement de couleur "onclick"? Ou du rouge pour montrer que ne fait rien ou ne marche pas ?
@@ -118,17 +118,17 @@ Ca avance, mais à poursuivre :
 
 A réfléchir :
 * Stats :
-** WIP - Pourcentage d'erreur dans le temps ? ("amélioration" ou pas ?)
-** WIP - Propositions de noms d'espèces (si augmente ou pas) dans le temps ?
-** Propositions et erreurs par groupe opérationnel ?
-** Observations favorites ! Coeur vide/plein 1 clic pour retrouver facilement certaines observations. Retrouver où/comment? Indépendant du(des) user(s) chargés ?
+  * WIP - Pourcentage d'erreur dans le temps ? ("amélioration" ou pas ?)
+  * WIP - Propositions de noms d'espèces (si augmente ou pas) dans le temps ?
+  * Propositions et erreurs par groupe opérationnel ?
+* Observations favorites ! Coeur vide/plein 1 clic pour retrouver facilement certaines observations. Retrouver où/comment? Indépendant du(des) user(s) chargés ?
 * Sélection d'un contributeur autrement? Par nom, pseudo, liste/rang ? Bof...
 * Garder pseudos des contributeurs consultés pour proposition dans une liste de sélection multiple ?
 
 A surveiller, chercher si jamais... Reverse-engineering :
 * API récupération de tous les id de data pour un user donné ?
 * API récupération data triées par date de dernière modif ?
-** [Ceci?](https://inpn.mnhn.fr/inpn-especes/data?page=0&size=24&filtreStatutValidation=5&userIds=20784&sort=-datePublished)
-** A tester !
+  * [Ceci?](https://inpn.mnhn.fr/inpn-especes/data?page=0&size=24&filtreStatutValidation=5&userIds=20784&sort=-datePublished)
+  * A tester !
 
 A envisager un jour, mais nécessite de savoir mieux ce que c'est, ce que ça représente : transformer en "Progressive Web App" ?
