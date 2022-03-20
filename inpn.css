@@ -942,6 +942,7 @@
     transition-duration: 1s;
     /* -webkit-animation: fadeinout 1s ease-in-out;
     animation: fadeinout 1s ease-in-out; */
+    text-decoration: unset;
   }
 
   #upwards:hover {
