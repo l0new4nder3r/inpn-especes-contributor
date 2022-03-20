@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Consultation d'observations INPN espèces</title>
@@ -10,10 +10,7 @@
     <link rel="stylesheet" href="inpn.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
  	  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
-    <script type="text/javascript" src="inpn.js"></script>
-    <script type="text/javascript" src="observationDetails.js"></script>
-    <script type="text/javascript" src="contributorStats.js"></script>
-    <script type="text/javascript" src="utils.js"></script>
+    <script type="module" src="inpn.js"></script>
 	  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
     <!--link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"-->
     <meta name="author" content="Nicolas Buchon">
@@ -40,17 +37,17 @@
 <div class="menu">
 	<div class="contributor">
     <div class="contributorDetails"></div>
-    <div class="choice" title="Entrer ici votre ID pour commencer à charger des observations">
+    <div class="choice" title="Entrer ici votre ID pour commencer à charger vos observations">
         <span>Choisir un&middot;e autre contributeur&middot;trice...</span>
         <input type="number" pattern="\d+" id="contributorId" placeholder="ID Contributeur" onblur="changeContributor()">
     </div>
 	</div>
 	<!--div onclick="loadSomeMore()" class="button">Charger plus d'observations</div-->
-	<div onclick="loopLoading()" title="Cliquer ici pour charger les observations" class="button" style="z-index: 1;position: relative;" id="loadAll">Charger les observations</div>
-  <div onclick="updateObservations()" title="Cliquer ici pour mettre vos observations non validées à jour" id="updateObs" class="button">Mettre à jour les observations</div>
+	<div title="Cliquer ici pour charger les observations" class="button" style="z-index: 1;position: relative;" id="loadAll">Charger les observations</div>
+  <div title="Cliquer ici pour mettre vos observations non validées à jour" id="updateObs" class="button">Mettre à jour les observations</div>
   <!--div onclick="cleanAll()" class="redButton">Réinitialiser</div-->
-  <div onclick="toggleLeftFilters()" title="Cliquer ici pour afficher les filtres par catégories" class="button" id="toggleLeftFilters">Afficher les filtres</div>
-  <div onclick="toggleRightSorters()" title="Cliquer ici pour afficher les tris d'observations" class="button" id="toggleRightSorters">Afficher les tris</div>
+  <div title="Cliquer ici pour afficher les filtres par catégories" class="button" id="toggleLeftFilters">Afficher les filtres</div>
+  <div title="Cliquer ici pour afficher les tris d'observations" class="button" id="toggleRightSorters">Afficher les tris</div>
   <!--div class=sort>
 		<div class="sortBy"> Trier par :</div>
 		<div class="sortBy">
@@ -66,7 +63,7 @@
       	<label for="points">Points (descendants)</label>
     </div>
 	</div-->
-  <div onclick="showHelp()" title="Cliquer ici pour afficher le message d'accueil" style="float: right;" class="button">A propos</div>
+  <div title="Cliquer ici pour afficher le message d'accueil" style="float: right;" class="button" id="help">A propos</div>
 </div>
 
 <div class="meter">
@@ -103,9 +100,9 @@
       <h2>Contact</h2>
       <p>En cas de besoin, vous pouvez me contacter ici (ôter les accolades et espaces) : n {.} buchon {@} free {.} fr</p>
       <p>Vous pouvez retrouver ces informations via le bouton "A propos".</p>
-      <p>Version 0.5</p>
+      <p>Version 0.6</p>
       <br/>
-      <div class="button" style="margin: auto;height: 4em;" onclick="closeHelp()">Fermer cette fenêtre</div>
+      <div class="button" style="margin: auto;height: 4em;" id="closeHelp">Fermer cette fenêtre</div>
     </div>
 </div>
 <div class="focus"></div>
@@ -120,72 +117,83 @@
     <div class="filterGroup">
       <div class="filterText">Groupes opérationnels</div>
       <br/>
-      <input type="checkbox" class="go" checked id="111" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="111">
       <label for="111" title="Escargots et autres mollusques">&#128012;</label>
       <br/>
-      <input type="checkbox" class="go" checked id="148" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="148">
       <label for="148" title="Oiseaux">&#128038;</label>
       <br/>
-      <input type="checkbox" class="go" checked id="154" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="154">
       <label for="154" title="Mammifères">&#129418;</label>
       <br/>
-      <input type="checkbox" class="go" checked id="158" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="158">
       <label for="158" title="Poissons">&#128031;</label>
       <br/>
-      <input type="checkbox" class="go" checked id="501" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="501">
       <label for="501" title="Champignons et lichens">&#127812;</label>
       <br/>
-      <input type="checkbox" class="go" checked id="502" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="502">
       <label for="502" title="Crabes, crevettes, cloportes et mille-pattes">&#129408;</label>
       <br/>
-      <input type="checkbox" class="go" checked id="504" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="504">
       <label for="504" title="Insectes et araignées">&#129419;</label>
       <br/>
-      <input type="checkbox" class="go" checked id="505" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="505">
       <label for="505" title="Plantes, mousses et fougères">&#127807;</label>
       <br/>
-      <input type="checkbox" class="go" checked id="506" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="506">
       <label for="506" title="Amphibiens et reptiles">&#128013;</label>
       <br/>
-      <input type="checkbox" class="go" checked id="24222202" onchange='filterObsGo(this)'>
+      <input type="checkbox" class="go" checked id="24222202">
       <label for="24222202" title="Autres">&#8230;</label>
       <br/>
       <div class="btns">
-        <div class="filterBtn" id="allGo" onclick="allGo()" title="Sélectionner toutes les catégories">Tous</div>
+        <div class="filterBtn" id="allGo" title="Sélectionner toutes les catégories">Tous</div>
         &nbsp;
-        <div class="filterBtn" id="noneGo" onclick="noneGo()" title="Désélectionner toutes les catégories">Aucun</div>
+        <div class="filterBtn" id="noneGo" title="Désélectionner toutes les catégories">Aucun</div>
       </div>
     </div>
     <br/>
     <div class="filterGroup">
       <div class="filterText">Statuts de validation</div>
       <br/>
-      <input type="checkbox" class="status" checked id="0" onchange='filterObsStatus(this)'>
+      <input type="checkbox" class="status" checked id="0" >
       <label for="0" title="error">⚠️</label>
       <br/>
-      <input type="checkbox" class="status" checked id="1" onchange='filterObsStatus(this)'>
+      <input type="checkbox" class="status" checked id="1" >
       <label for="1" title="Initialisation">▶️</label>
       <br/>
-      <input type="checkbox" class="status" checked id="2" onchange='filterObsStatus(this)'>
+      <input type="checkbox" class="status" checked id="2" >
       <label for="2" title="Photographie traitée">&#128248;</label>
       <br/>
-      <input type="checkbox" class="status" checked id="3" onchange='filterObsStatus(this)'>
+      <input type="checkbox" class="status" checked id="3" >
       <label for="3" title="Groupe grand public traité">&#128213;</label>
       <br/>
-      <input type="checkbox" class="status" checked id="4" onchange='filterObsStatus(this)'>
+      <input type="checkbox" class="status" checked id="4" >
       <label for="4" title="Groupe opérationnel traité">&#128215;</label>
       <br/>
-      <input type="checkbox" class="status" checked id="5" onchange='filterObsStatus(this)'>
+      <input type="checkbox" class="status" checked id="5" >
       <label for="5" title="Espèce validée">&#9989;</label>
       <br/>
-      <input type="checkbox" class="status" checked id="6" onchange='filterObsStatus(this)'>
+      <input type="checkbox" class="status" checked id="6" >
       <label for="6" title="Observation invalidée">&#10060;</label>
       <br/>
       <div class="btns">
-        <div class="filterBtn" id="allStat" onclick="allStat()" title="Sélectionner toutes les catégories">Tous</div>
+        <div class="filterBtn" id="allStat" title="Sélectionner toutes les catégories">Tous</div>
         &nbsp;
-        <div class="filterBtn" id="noneStat" onclick="noneStat()" title="Désélectionner toutes les catégories">Aucun</div>
+        <div class="filterBtn" id="noneStat" title="Désélectionner toutes les catégories">Aucun</div>
       </div>
+      <br/>
+    </div>
+    <br/>
+    <div class="filterGroup">
+      <div class="filterText">Quêtes</div>
+      <br/>
+      <input type="checkbox" class="quests" checked id="No" >
+      <label for="No" title="Hors quêtes">🔎</label>
+      <br/>
+      <input type="checkbox" class="quests" checked id="Yes" >
+      <label for="Yes" title="Quêtes">🎯</label>
       <br/>
     </div>
   </div>
@@ -195,21 +203,21 @@
 <div class=rightSorters>
   <h4 style="margin: 5px;">Tri</h4>
   <div class="sortBy">
-    <input type="radio" id="dateModif" name="sort" value="dateModif" checked onchange="sortObs()">
+    <input type="radio" id="dateModif" name="sort" value="dateModif" checked >
     <label for="dateModif">Date de dernière modification</label>
   </div>
   <div class="sortBy">
-      <input type="radio" id="dateCrea" name="sort" value="dateCrea" onchange="sortObs()">
+      <input type="radio" id="dateCrea" name="sort" value="dateCrea" >
       <label for="dateCrea">Date de création (descendante)</label>
   </div>
   <div class="sortBy">
-      <input type="radio" id="points" name="sort" value="points" onchange="sortObs()">
+      <input type="radio" id="points" name="sort" value="points" >
       <label for="points">Points (descendants)</label>
   </div>
 </div>
 
 <div id="upwards">
-  <a href="#" class="upwards">&#11014;</a>
+  <a href="#" class="upwards">&#8682;</a><!-- &#11014; or &#8673;? -->
 </div>
 
 <div id="notifications"></div>

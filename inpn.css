@@ -1,5 +1,10 @@
 /* CSS used for "Consultation d'observations INPN espèces" static html file */
 
+  /* variable for background color of arrows hovering in detailed obs pictures */
+    :root {
+      --arrowsBackColour: (rgba(0,0,0,0.8));
+    }
+
     html {
       scroll-behavior: smooth;
     }
@@ -11,6 +16,44 @@
   		font-size: small;
   		font-style: inherit;
   		font-family: Sans-serif;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 140px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 150%;
+      left: 50%;
+      margin-left: -75px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #555 transparent transparent transparent;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
     }
 
     .container {
@@ -228,7 +271,7 @@
 
 	/* On hover, add a black background color with a little bit see-through */
 	.prev:hover, .next:hover {
-	  background-color: rgba(0,0,0,0.8);
+	  background-color: var(--arrowsBackColour, rgba(0,0,0,0.8));
 	}
 
 	/* Number text (1/3 etc) */
