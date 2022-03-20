@@ -58,7 +58,7 @@ Les choses se compliquent grandement sur smartphone ou tablette... Rien n'est ad
 
 En plus de devoir gérer autrement les tooltips/messages d'information et une alternative aux clics ("touch"), il faudrait revoir le menu, la disposition, les colonnes de la liste d'observations ; en travaillant peut-être avec les annotations "@media" en CSS ?
 
-A tester mieux pour définir ce qui ne va pas, pourrait mieux aller :
+WIP - A tester mieux pour définir ce qui ne va pas, pourrait mieux aller :
 
 * page principale
   * ipad Air : menu KO, obs hauteur ko (largeur x3 bof) filters ko
@@ -85,6 +85,8 @@ Problèmes à travailler, corrections à effectuer :
 * Premier appel pour le score et les détails, API changée, à corriger/revoir ?
 * Informations de quêtes / points à part / lien vers les quêtes ?
 * Liens vers page officielles pour user, observation, etc ?
+  * [Exemple de lien vers une observation](https://determinobs.fr/#/observations/421087)
+  * [Exemple de lien vers un observateur](https://determinobs.fr/#/observateurs/5931)
 * Arranger les détails d'un contributeur au souci d'un chargement (cassé pas beau)
 * Animation de chargement : quelque chose de plus heureux dans la barre de progression ?
 * Remontée : remplacer par du JS, pour prévenir le comportement "précédent" ? Et/ou rendre plus joli ?
@@ -113,6 +115,7 @@ Ca avance, mais à poursuivre :
 * Try/catch pour "load some more" et "load all" ?
 * Static map avec les "ids/values" des groupes opérationnels ? Ou meilleure source sans faute ?
 * Possibilités de chargements en // encore plus ? Plusieurs threads pour les chargements groupés ?
+* Lint pour css, html?
 
 ### New features  - idées à creuser, ou pas
 
@@ -121,7 +124,10 @@ A réfléchir :
   * WIP - Pourcentage d'erreur dans le temps ? ("amélioration" ou pas ?)
   * WIP - Propositions de noms d'espèces (si augmente ou pas) dans le temps ?
   * Propositions et erreurs par groupe opérationnel ?
-* Observations favorites ! Coeur vide/plein 1 clic pour retrouver facilement certaines observations. Retrouver où/comment? Indépendant du(des) user(s) chargés ?
+* Observations favorites !
+  * Coeur vide/plein 1 clic pour retrouver facilement certaines observations.
+  * Retrouver où/comment?
+  * Indépendant du(des) user(s) chargés ?
 * Sélection d'un contributeur autrement? Par nom, pseudo, liste/rang ? Bof...
 * Garder pseudos des contributeurs consultés pour proposition dans une liste de sélection multiple ?
 

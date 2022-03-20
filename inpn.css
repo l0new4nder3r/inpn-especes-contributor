@@ -19,7 +19,6 @@
     }
 
     .tooltip {
-      position: relative;
       cursor: copy;
       font-size: x-large;
       display: flex;
@@ -563,7 +562,6 @@
 
 	input[type="number"]{
 	  width : 5em;
-	  border: 1px solid #333;
 	  box-sizing: border-box;
     border: none;
     text-align: center;
