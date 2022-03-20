@@ -244,7 +244,7 @@ function buildInfos (chosenObs) {
 							${validated}
 							${titleLink}
 							${correctedName}
-              <div class="tooltip" id="share" style="cursor: copy;display: block;width: 1em;height: 1em;">🔗<input type="text" id="shareLink" value="https://www.nbuchon.me/inpn/singleObs.html?observationId=${chosenObs.idData}" style="visibility: collapse;"><span class="tooltiptext" id="myTooltip">Partager cette observation</span></div>
+              <div class="tooltip" id="share" style="cursor: copy;display: block;width: 1em;height: 1em;">🔗<input type="text" id="shareLink" value="https://www.nbuchon.me/inpn/singleObs.html?id=${chosenObs.idData}" style="visibility: collapse;"><span class="tooltiptext" id="myTooltip">Partager cette observation</span></div>
 							<div class="protectionStatus"></div>
 							${statusComment}
 							<p>${chosenObs.lbGroupSimple}</p>

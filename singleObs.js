@@ -32,8 +32,8 @@ async function loadAll () {
         }
     }
 
-    if (urlParams.has("observationId")) {
-        observationId = urlParams.get("observationId");
+    if (urlParams.has("id")) {
+        observationId = urlParams.get("id");
         // console.log("obs id is "+obsId);
     }
 
@@ -78,7 +78,7 @@ async function addUserDetails (contributor) {
     popinTop.style.display="flex";
 
     const randomNext = await getValidRandomObservationId();
-    const randomDivContent = `<a href="singleObs.html?observationId=${randomNext}" class="random" title="Consulter une observation au hasard!" style="display: flex;align-items: center;position: relative;padding-left: 2em;font-size: x-large;text-decoration: unset;opacity: 0.7;">🔀</a>`;
+    const randomDivContent = `<a href="singleObs.html?id=${randomNext}" class="random" title="Consulter une observation au hasard!" style="display: flex;align-items: center;position: relative;padding-left: 2em;font-size: x-large;text-decoration: unset;opacity: 0.7;">🔀</a>`;
     popinTop.insertAdjacentHTML("beforeend", randomDivContent);
 
     const userDivContent = "<div class=\"user\" style=\"width: 67%;float: right;padding-inline-start: 4em;display: flex;\"></div>";
