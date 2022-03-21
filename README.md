@@ -72,6 +72,12 @@ WIP - A tester mieux pour définir ce qui ne va pas, pourrait mieux aller :
 
 Attention, la détection "touch" en JS inhibe les "hover"? Comment gérer cela? Plusieurs choses ne fonctionnent pas en tactile, comme la loupe - les enlever si mode tactile détecté, dans l'attente d'une alternative?
 
+#### Accessibilité
+
+Beaucoup à étudier là encore, probablement... :(
+Couleurs de statut à repenser (intuitif, mieux pour malvoyants ou daltoniens-nes?).
+Alt text pour les images.
+
 
 #### Statistiques
 

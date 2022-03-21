@@ -1141,65 +1141,49 @@ function filterObs (prefix,checkbox) {
     const allWithClassName = document.querySelectorAll(`.${prefix}${checkbox.id}.obs`);
 
     if (checkbox.checked) {
+        // for each observation (div) in the page matching the criteria
         allWithClassName.forEach(div=>{
             // get other class values and verify not unchecked!
-            const statusRegex = new RegExp("status*");
-            const goRegex = new RegExp("go*");
-            const questRegex = new RegExp("quests*");
 
             // we need 3 matches to display!
-            let checkGoId;
-            let checkStatusId;
-            let checkQuestId;
-
-            div.classList.forEach(val=>{
-                if (prefix==="status") {
-                    if (goRegex.test(val)) {
-                        checkGoId = val.match(/\d+/)[0];
-                    } else if (questRegex.test(val)) {
-                        // quests
-                        checkQuestId = val.match("quests([A-Za-z]{2,3})")[1];
-                    }
-                } else if (prefix==="go") {
-                    if (statusRegex.test(val)) {
-                        checkStatusId = val.match("[1-9]")[0];
-                    } else if (questRegex.test(val)) {
-                        // quests
-                        checkQuestId = val.match("quests([A-Za-z]{2,3})")[1];
-                    }
-                } else {
-                    // prefix is quests
-                    if (statusRegex.test(val)) {
-                        checkStatusId = val.match("[1-9]")[0];
-                    } else if (goRegex.test(val)) {
-                    // go
-                        checkGoId = val.match(/\d+/)[0];
-                    }
-                }
-            });
-
             let goCheck;
             let statusCheck;
             let questCheck;
 
-            if (checkGoId!=null) {
-                goCheck = document.getElementById(checkGoId).checked;
-            }
-            if (checkStatusId!=null) {
-                statusCheck = document.getElementById(checkStatusId).checked;
-            }
-            if (checkQuestId!=null) {
-                questCheck = document.getElementById(checkQuestId).checked;
-            }
-            // could be optimised?! TODO fix redundency
+            // for each class in this observation div...
+            div.classList.forEach(val=>{
+                // we need to know the checked status of the 3 matching checkboxes for current obs
+                // let's get the 2 missing checkboxes' ids
+                if (val!=="obs") {
+
+                    if (val.includes("status")) {
+                        if (prefix!=="status") {
+                            const checkStatusId = val.match("[1-9]")[0];
+                            statusCheck = document.getElementById(checkStatusId).checked;
+                        } else {
+                            statusCheck = true;
+                        }
+                    } else if (val.includes("go")) {
+                        if (prefix!=="go") {
+                            const checkGoId = val.match(/\d+/)[0];
+                            goCheck = document.getElementById(checkGoId).checked;
+                        } else {
+                            goCheck = true;
+                        }
+                    } else if (val.includes("quests")) {
+                        if (prefix!=="quests") {
+                            const checkQuestId = val.match("quests([A-Za-z]{2,3})")[1];
+                            questCheck = document.getElementById(checkQuestId).checked;
+                        } else {
+                            questCheck = true;
+                        }
+                    }
+                }
+            });
+            // only display if the 3 checkboxes are checked
             if (goCheck && statusCheck && questCheck) {
                 div.style.display="initial";
             }
-            // we now know which one we need to verify...
-            // if checked too:
-            // if (document.getElementById(checkId).checked) {
-            //     div.style.display="initial";
-            // }
         });
     } else {
         allWithClassName.forEach(div=>{

@@ -190,15 +190,23 @@ export async function addProtectionStatus (referenceCode) {
 function buildInfos (chosenObs) {
 
     let validated = "";
+    // corrected
     if (chosenObs.isCorrected==="true") {
         validated=`<div title="Proposition d'espèce corrigée" class="validated">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Cross_red_circle.svg/32px-Cross_red_circle.svg.png">
         </div>`;
     } else if (chosenObs.isValidated==="true") {
+        // validated
         validated=`<div title="Observation validée!" class="validated">
 				<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Icons8_flat_approval.svg/32px-Icons8_flat_approval.svg.png">
 				</div>`;
+    } else if (chosenObs.validation!= null && chosenObs.validation.idStatus===6) {
+        // canceled, refused...
+        validated=`<div title="Observation en erreur, ou refusée..." class="validated">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Cross_red_circle.svg/32px-Cross_red_circle.svg.png">
+        </div>`;
     } else {
+        // Not validated yet, work in progress
         validated=`<div title="Observation non encore validée!" class="validated">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Icon-round-Question_mark.jpg/256px-Icon-round-Question_mark.jpg" style="width: 32px;">
         </div>`;
