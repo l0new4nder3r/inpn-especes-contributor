@@ -227,7 +227,7 @@
       height: inherit;
       top: 46.5px;
       position: relative;
-      display: flex;
+      display: block; /*flex*/
       background-color: snow;
   }
 
@@ -778,6 +778,11 @@
     text-align: end;
   }
 
+  .statsDown{
+    float: left;
+    width: 100%;
+  }
+
   .leftFilters{
   	border-top-right-radius: 10px;
     border-bottom-left-radius:10px;
@@ -942,7 +947,6 @@
     transition-duration: 1s;
     /* -webkit-animation: fadeinout 1s ease-in-out;
     animation: fadeinout 1s ease-in-out; */
-    text-decoration: unset;
   }
 
   #upwards:hover {
@@ -959,6 +963,7 @@
     align-content: center;
     top: -5px;
     position: relative;
+    text-decoration: unset;
   }
 
   /* @-webkit-keyframes fadeinout {

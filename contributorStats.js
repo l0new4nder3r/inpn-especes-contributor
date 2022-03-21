@@ -160,10 +160,6 @@ async function showStats () {
         statsleft.innerHTML+=buildCanvas("validationStatusCanvas",`Répartition des observations${asterisk} par statut de validation`);
         statsleft.innerHTML+="<br/>";
 
-        /* graphique propositions espèces dans le temps */
-        statsleft.innerHTML+=buildCanvas("speciesPropositionInTimeCanvas",`Proportion de propositions d'espèces dans les observations${asterisk} dans le temps`);
-        statsleft.innerHTML+="<br/>";
-
         const rightStatsContents = document.querySelector(".statsRight");
 
         /* familles d'espèces - groupes simplifiés  */
@@ -176,6 +172,12 @@ async function showStats () {
 
         /* graphique avec obs dans le temps */
         rightStatsContents.innerHTML+=buildCanvas("timelineCanvas",`Répartition des observations${asterisk} dans le temps`);
+
+        statsContents.insertAdjacentHTML("beforeend", "<div class=\"statsDown\"></div>");
+        const downStatsContents = document.querySelector(".statsDown");
+        /* graphique propositions espèces dans le temps */
+        downStatsContents.innerHTML+=buildCanvas("speciesPropositionInTimeCanvas",`Proportion de propositions d'espèces dans les observations${asterisk} dans le temps`);
+        downStatsContents.innerHTML+="<br/>";
 
         stats.style.cursor="unset";
     } else {
@@ -600,7 +602,7 @@ function buildTimelineGraph () {
         }
     });
     //console.log('minDate= '+dateCreaMin+' maxDate= '+dateCreaMax);
-    const months = monthsBtwnDates(dateCreaMin,dateCreaMax);
+    // const months = monthsBtwnDates(dateCreaMin,dateCreaMax);
     //console.log('months between= '+months);
 
     // build an array with months between start and end
