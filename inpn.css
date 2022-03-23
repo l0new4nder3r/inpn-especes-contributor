@@ -25,7 +25,11 @@
       align-items: center;
       position: relative;
       margin-left: 2em;
-      opacity: 0.7;
+      opacity: 0.5;
+    }
+
+    .tooltip:hover {
+      opacity: 1;
     }
 
     .tooltip .tooltiptext {
@@ -219,6 +223,7 @@
     align-items: center;
     height: 100%;
     /*height: 4.75px;*/
+    width: 16em;
   }
 
   .detailsContents,
@@ -1055,6 +1060,36 @@
     font-size: x-large;
     text-decoration: unset;
     opacity: 0.7;
+  }
+
+  .randomMain {
+    position: relative;
+    margin: 0.75em;
+    font-size: x-large;
+    text-decoration: unset;
+    opacity: 0.7;
+    float: left;
+  }
+
+  .randomMain:hover, .random:hover {
+    opacity: 1;
+    animation: shake 0.5s;
+    animation-iteration-count: infinite;
+  }
+
+  /* Taken from https://www.w3schools.com/howto/howto_css_shake_image.asp */
+  @keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(3deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(2deg); }
+    50% { transform: translate(-1px, 2px) rotate(-4deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-2deg); }
+    80% { transform: translate(-1px, -1px) rotate(5deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
   }
 
   .user {
