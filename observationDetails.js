@@ -28,7 +28,7 @@ function findChosenObs (idData) {
     return chosenObs;
 }
 
-export function showDetails (idData) {
+export function showDetails (idData, isTouchDevice) {
     // get current observation
     const chosenObs = findChosenObs(idData);
 
@@ -48,6 +48,9 @@ export function showDetails (idData) {
     blurBackground();
 
     showSlides(slideIndex);
+    if (isTouchDevice) {
+        document.querySelector(".toggleMagnify").style.visibility="collapse";
+    }
 
     // erreur, c'est inversé?! wtf
     displayMap(chosenObs.Y,chosenObs.X);
@@ -483,7 +486,7 @@ function toggleMagnify () {
         toggleMagnifier.style.visibility="visible";
     } else {
         //turn on
-        magnify("magnify", 3);
+        magnify("magnify", 2);
         magnifier = document.querySelector(".img-magnifier-glass");
         magnifier.style.visibility="visible";
         const toggleMagnifier = document.querySelector(".toggleMagnify");

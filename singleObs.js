@@ -5,6 +5,7 @@ import { getOneObservation, inpnUrlBase, TIMEOUT } from "./inpn.js";
 import * as Details from "./observationDetails.js";
 
 /* eslint no-console: 0 */
+const isTouchDevice = Utils.isMobileDevice ();
 
 window.onload = function () {
     loadAll();
@@ -51,6 +52,9 @@ function displayObservation (obs) {
     const main = document.getElementById("main");
     Details.initObservationContent(obs,main);
     Details.showSlides(Details.slideIndex);
+    if (isTouchDevice) {
+        document.querySelector(".toggleMagnify").style.visibility="collapse";
+    }
     Details.displayMap(obs.Y,obs.X);
     Details.addScoreDetails(obs.idData);
     Details.addProtectionStatus(obs.cdRef);
@@ -66,7 +70,7 @@ async function addUserDetails (contributor) {
     const popinTop = document.querySelector(".popinTop");
 
     const randomNext = await getValidRandomObservationId();
-    const randomDivContent = `<a href="singleObs.html?id=${randomNext}" class="random" title="Consulter une observation au hasard!">🔀</a>`;
+    const randomDivContent = `<a href="singleObs.html?id=${randomNext}" class="random" title="Consulter une observation au hasard!">🎲</a>`;
     popinTop.insertAdjacentHTML("beforeend", randomDivContent);
 
     const userDivContent = "<div class=\"user\"></div>";
@@ -82,8 +86,9 @@ async function addUserDetails (contributor) {
         userDiv.insertAdjacentHTML("beforeend", userScore);
 
         // link to inpn page, on user picture
-        const userPicture = `<a href="/${Utils.getUrlPath()}/index.html?userId=${contributor.idUtilisateur}" target="_blank" title="Consulter toutes les observations de ${contributor.pseudo} (nouvelle page)"><img id="profilePicSingle" alt="contributor profile picture" src="${contributor.avatar}"></a>`;
-        userDiv.insertAdjacentHTML("beforeend", userPicture);
+        const userPicture = `<img id="profilePicSingle" alt="contributor profile picture" src="${contributor.avatar}">`;
+        const userLink = `<a href="/${Utils.getUrlPath()}/index.html?userId=${contributor.idUtilisateur}" target="_blank" title="Consulter toutes les observations de ${contributor.pseudo} (nouvelle page)">${userPicture}</a>`;
+        userDiv.insertAdjacentHTML("beforeend", userLink);
         const profPic = document.getElementById("profilePicSingle");
         profPic.style.width=profPic.clientHeight+"px";
 
@@ -99,7 +104,7 @@ async function addUserDetails (contributor) {
         }
         document.querySelector(".totalScore").title=`${obsValidatedCount}`;
     } else {
-        userDiv.insertAdjacentHTML("beforeend", "<div>Erreur lors du chargement de l'utilisateur&middot;trice</div>");
+        userDiv.insertAdjacentHTML("beforeend", "<div class=\"pseudo singlePseudo\">Erreur lors du chargement de l'utilisateur&middot;trice</div>");
     }
 }
 

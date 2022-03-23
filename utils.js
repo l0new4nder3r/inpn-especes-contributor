@@ -182,3 +182,11 @@ export function getUrlPath () {
     }
     return urlPath;
 }
+
+export function isMobileDevice () {
+    const isMobile = window.matchMedia("only screen and (max-width: 820px)").matches;
+    if (isMobile) {
+        console.log("Detected smart device, hopefully correctly!");
+    }
+    return isMobile;
+}

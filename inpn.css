@@ -24,7 +24,7 @@
       display: flex;
       align-items: center;
       position: relative;
-      padding-left: 2em;
+      margin-left: 2em;
       opacity: 0.7;
     }
 
@@ -1051,7 +1051,7 @@
     display: flex;
     align-items: center;
     position: relative;
-    padding-left: 2em;
+    margin-left: 2em;
     font-size: x-large;
     text-decoration: unset;
     opacity: 0.7;
@@ -1093,4 +1093,25 @@
   .singleScore {
     left: 34%;
   }
+
+  .obs {
+    width: 75%;
+  }
+
+  @media (min-width: 800px), (max-width: 1200px) {
+    .obs {
+      width: 40%;
+    }
+  }
+
+  @media (max-height: 450px) {
+    .leftFilters {
+      padding: unset;
+      padding-bottom: unset;
+      top: 15%;
+      left: -10.75em;
+      width: 10em;
+    }
+  }
+
 }

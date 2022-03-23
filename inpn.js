@@ -27,6 +27,7 @@ let areFiltersDisplayed = false;
 let areSortersDisplayed = false;
 // Timout constant for API calls
 export const TIMEOUT = 30000;
+const isTouchDevice = Utils.isMobileDevice ();
 
 
 /***
@@ -621,7 +622,7 @@ function detailsHandler (event) {
         div = event.target;
     }
     // console.log(div);
-    showDetails(div.id);
+    showDetails(div.id, isTouchDevice);
 }
 
 function renderObs () {
