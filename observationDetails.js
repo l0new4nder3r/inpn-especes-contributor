@@ -198,10 +198,15 @@ function buildInfos (chosenObs) {
         validated=`<div title="Proposition d'espèce corrigée" class="validated">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Cross_red_circle.svg/32px-Cross_red_circle.svg.png">
         </div>`;
-    } else if (chosenObs.isValidated==="true") {
-        // validated
-        validated=`<div title="Observation validée!" class="validated">
+    } else if (chosenObs.isValidated==="true" && chosenObs.taxonOrigin.cdNomOrigin!=null) {
+        // validated and correctly guessed
+        validated=`<div title="Observation et proposition d'espèce validées!" class="validated">
 				<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Icons8_flat_approval.svg/32px-Icons8_flat_approval.svg.png">
+				</div>`;
+    } else if (chosenObs.isValidated==="true" && chosenObs.taxonOrigin.cdNomOrigin==null) {
+        // validated but species not guessed
+        validated=`<div title="Observation validée" class="validated">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Icons8_flat_checkmark.svg/32px-Icons8_flat_checkmark.svg.png">
 				</div>`;
     } else if (chosenObs.validation!= null && chosenObs.validation.idStatus===6) {
         // canceled, refused...
@@ -210,7 +215,7 @@ function buildInfos (chosenObs) {
         </div>`;
     } else {
         // Not validated yet, work in progress
-        validated=`<div title="Observation non encore validée!" class="validated">
+        validated=`<div title="Observation non encore traitée" class="validated">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Icon-round-Question_mark.jpg/256px-Icon-round-Question_mark.jpg" style="width: 32px;">
         </div>`;
     }
@@ -277,6 +282,14 @@ function buildInfos (chosenObs) {
     htmlInfos+=`<div title="${validLabel}" class="progressDetails">`;
     htmlInfos+=buildProgress(chosenObs.validation.idStatus);
     htmlInfos+="</div>";
+
+    htmlInfos+=`<div class="linkOfficial">
+                  <a href="https://determinobs.fr/#/observations/${chosenObs.idData}" target="_blank">
+                    <img title="déterminobs" src="https://determinobs.fr/favicon.ico" style="width: 1em;">
+                    <span style="margin-left: 5px;">Voir sur Déterminobs</span>
+                  </a>
+                </div>`;
+
     // and end the infos div
     htmlInfos+="</div>";
     return htmlInfos;

@@ -152,6 +152,14 @@ async function showStats () {
             leftStatsContents.innerHTML+=`<p class="statsLegend">${asterisk} Sur les ${listObservations.observations.length} observations chargées</p>`;
         }
 
+        // link to official profile
+        leftStatsContents.innerHTML+=`<div class="linkOfficial">
+                                        <a href="https://determinobs.fr/#/observateurs/${currentContributor.idUtilisateur}" target="_blank">
+                                          <img title="déterminobs" src="https://determinobs.fr/favicon.ico" style="width: 1em;">
+                                          <span style="margin-left: 5px;">Consulter le profil de ${currentContributor.pseudo} sur Déterminobs</span>
+                                        </a>
+                                      </div>`;
+
         /* scores graphique! */
         statsleft.innerHTML+=buildCanvas("scoresCanvas",`Répartition des observations${asterisk} validées par score`);
         statsleft.innerHTML+="<br/>";
@@ -461,7 +469,7 @@ function buildPropositionsGraph () {
         let propRatio;
         if (observations>0) {
             propRatio = (propositions/observations*100).toFixed(0);
-            console.log("For "+month+" proposed "+propositions+" on "+observations+" sent - ratio is "+propRatio);
+            // console.log("For "+month+" proposed "+propositions+" on "+observations+" sent - ratio is "+propRatio);
         }
         propositionRatePerMonth.set(month,propRatio);
 
@@ -469,7 +477,7 @@ function buildPropositionsGraph () {
         let corrRatio;
         if (propositions>0) {
             corrRatio = (corrected/propositions*100).toFixed(0);
-            console.log("For "+month+" corrected "+corrected+" on "+propositions+" proposed - ratio is "+corrRatio);
+            // console.log("For "+month+" corrected "+corrected+" on "+propositions+" proposed - ratio is "+corrRatio);
         }
         failureRateMapPerMonth.set(month,corrRatio);
     });

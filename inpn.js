@@ -29,6 +29,8 @@ let areSortersDisplayed = false;
 export const TIMEOUT = 30000;
 const isTouchDevice = Utils.isMobileDevice ();
 
+const LOAD_OBS = "⇩ Charger";
+const UPDATE_OBS = "↺ Mettre à jour";
 
 /***
 **
@@ -99,7 +101,7 @@ async function loadAll () {
         // console.log("more ok");
         activateBtn("loadAll");
         document.getElementById("loadAll").title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
-        document.getElementById("loadAll").innerHTML = "Charger les observations";
+        document.getElementById("loadAll").innerHTML = LOAD_OBS;
     }
 
     createObserver();
@@ -158,6 +160,20 @@ function initListeners () {
     document.getElementById("dateModif").addEventListener("change", sortObs);
     document.getElementById("dateCrea").addEventListener("change", sortObs);
     document.getElementById("points").addEventListener("change", sortObs);
+    document.getElementById("contributorId").addEventListener("blur", changeContributor);
+    if (isTouchDevice) {
+        document.querySelector(".choice").addEventListener("click", openChoice);
+    }
+}
+
+function openChoice (event) {
+    const choiceDiv = event.target;
+    if (choiceDiv.style.right==="-6em") {
+        choiceDiv.style.right="0em";
+    } else {
+        choiceDiv.style.right="-6em";
+    }
+    //box-shadow: -10px 10px 0px -3px black;
 }
 
 /***
@@ -328,7 +344,7 @@ export async function loopLoading () {
                 // stop it!
                 isLoopLoadingOn = false;
                 // turn "load all" button to "pause"
-                buttonLoadAll.innerHTML = "Charger les observations";
+                buttonLoadAll.innerHTML = LOAD_OBS;
                 buttonLoadAll.title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
             } else {
                 isLoopLoadingOn=true;
@@ -368,7 +384,7 @@ export async function loopLoading () {
 
                 // if not finished
                 if (index< latestObs.totLines) {
-                    buttonLoadAll.innerHTML = "Charger les observations";
+                    buttonLoadAll.innerHTML = LOAD_OBS;
                     buttonLoadAll.title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
                 } else {
                     deactivateLoadAllButton();
@@ -466,12 +482,21 @@ async function updateObsFromStorageIds (pastIds) {
     // do not want to duplicate the first previously loaded
         if (idFirst!==id) {
             const currObs = await getOneObservation(id);
-            listObservations.observations.push(currObs);
-            pastIdsCount++;
-            if (pastIdsCount%10===0) {
-                await renderObs();
-                renderProgress();
+            if (currObs!=null) {
+                listObservations.observations.push(currObs);
+                pastIdsCount++;
+                if (pastIdsCount%10===0) {
+                    await renderObs();
+                    renderProgress();
+                }
+            } else {
+                // error!
+                Utils.addNotification("","Echec","Erreur lors du chargement de l'observation "+id);
+                // TODO exception management...
+                // + deal with stopping the following code
+                break;
             }
+
         } else {
             console.log("Found idFirst in ids "+idFirst);
             firstObsInPastIds=true;
@@ -758,22 +783,33 @@ function isValidationEmpty (observation) {
     return isValEmpty;
 }
 
-export function changeContributor () {
+export async function changeContributor () {
     // getting input from field
     const userId = document.getElementById("contributorId").value;
     if (userId!=null && userId>0) {
         console.log("Will attempt to load data for contributor "+userId);
         if (USER_ID!=null &&USER_ID!==userId) {
-            // stop current loading if running
-            isLoopLoadingOn=false;
-            isMoreLoadingOn=false;
-            // change user, reinit all
-            USER_ID = userId;
-            reinit();
-            currentContributor=null;
-            // keeping this value for 10 days max
-            Utils.setCookie("contributorId", userId, 10);
-            loadAll();
+            // testing if exists...
+            const contributor = await Utils.callAndWaitForJsonAnswer(inpnUrlBase+"contributor/"+userId, TIMEOUT);
+            if (contributor==null) {
+                console.log("This profile doesn't seem to exist... "+userId);
+                Utils.addNotification("","Echec","Erreur lors du chargement de l'utilisateur&middot;trice "+userId+" !");
+                if (currentContributor!=null) {
+                    document.getElementById("contributorId").value=currentContributor.idUtilisateur;
+                }
+            } else {
+                // ok to change...
+                // stop current loading if running
+                isLoopLoadingOn=false;
+                isMoreLoadingOn=false;
+                // change user, reinit all
+                USER_ID = userId;
+                reinit();
+                currentContributor=null;
+                // keeping this value for 10 days max
+                Utils.setCookie("contributorId", userId, 10);
+                loadAll();
+            }
         } else if (USER_ID!=null) {
             // same userId!
             console.warn("same userId as before! Doing nothing");
@@ -794,8 +830,10 @@ function reinit () {
     latestObs=null;
     isLoopLoadingOn=false;
     isMoreLoadingOn=false;
-    observer.unobserve(document.querySelector("#bottom"));
-    observer=null;
+    if (observer!=null) {
+        observer.unobserve(document.querySelector("#bottom"));
+        observer=null;
+    }
     index=0;
     document.querySelector(".container").innerHTML = "";
     renderProgress();
