@@ -44,8 +44,8 @@
       position: absolute;
       z-index: 1;
       bottom: 83%;
-      left: 95%;
-      margin-left: -75px;
+      left: 75%;
+      margin-left: -77px;
       opacity: 0;
       transition: opacity 0.3s;
       font-size: small;

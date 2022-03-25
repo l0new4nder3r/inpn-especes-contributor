@@ -3,6 +3,27 @@
 import { USER_ID, TIMEOUT, latestObs, listObservations, currentContributor, blurBackground, unblurBackground, inpnUrlBase} from "./inpn.js";
 import { callAndWaitForJsonAnswer } from "./utils.js";
 
+/* taken from https://www.chartjs.org/docs/master/samples/utils.html */
+export const CHART_COLORS = {
+    red: "rgb(255, 99, 132)",
+    orange: "rgb(255, 159, 64)",
+    yellow: "rgb(255, 205, 86)",
+    green: "rgb(75, 192, 192)",
+    blue: "rgb(54, 162, 235)",
+    purple: "rgb(153, 102, 255)",
+    grey: "rgb(201, 203, 207)"
+};
+
+export const LIGHT_CHART_COLORS = {
+    red: "rgba(255, 99, 132, 0.2)",
+    orange: "rgba(255, 159, 64, 0.2)",
+    yellow: "rgba(255, 205, 86, 0.2)",
+    green: "rgba(75, 192, 192, 0.2)",
+    blue: "rgba(54, 162, 235, 0.2)",
+    purple: "rgba(153, 102, 255, 0.2)",
+    grey: "rgba(201, 203, 207, 0.2)",
+};
+
 /* eslint no-console: 0 */
 
 const monthsBtwnDates = (startDate, endDate) => {
@@ -165,26 +186,26 @@ async function showStats () {
         statsleft.innerHTML+="<br/>";
 
         /* graphique histo avec répartition par statut de validation */
-        statsleft.innerHTML+=buildCanvas("validationStatusCanvas",`Répartition des observations${asterisk} par statut de validation`);
+        statsleft.innerHTML+=buildCanvas("validationStatusCanvas",`Répartition${asterisk} par statut de validation`);
         statsleft.innerHTML+="<br/>";
 
         const rightStatsContents = document.querySelector(".statsRight");
 
         /* familles d'espèces - groupes simplifiés  */
-        rightStatsContents.innerHTML+=buildCanvas("groupeSimpleCanvas",`Répartition des observations${asterisk} par groupe grand public`);
+        rightStatsContents.innerHTML+=buildCanvas("groupeSimpleCanvas",`Répartition${asterisk} par groupe grand public`);
         rightStatsContents.innerHTML+="<br/>";
 
         /* nombre par région */
-        rightStatsContents.innerHTML+=buildCanvas("regionsCanvas",`Répartition des observations${asterisk} par régions`);
+        rightStatsContents.innerHTML+=buildCanvas("regionsCanvas",`Répartition${asterisk} par régions`);
         rightStatsContents.innerHTML+="<br/>";
 
         /* graphique avec obs dans le temps */
-        rightStatsContents.innerHTML+=buildCanvas("timelineCanvas",`Répartition des observations${asterisk} dans le temps`);
+        rightStatsContents.innerHTML+=buildCanvas("timelineCanvas",`Soumissions${asterisk} par mois`);
 
         statsContents.insertAdjacentHTML("beforeend", "<div class=\"statsDown\"></div>");
         const downStatsContents = document.querySelector(".statsDown");
         /* graphique propositions espèces dans le temps */
-        downStatsContents.innerHTML+=buildCanvas("speciesPropositionInTimeCanvas",`Proportion de propositions d'espèces dans les observations${asterisk} dans le temps`);
+        downStatsContents.innerHTML+=buildCanvas("speciesPropositionInTimeCanvas",`Propositions et corrections d'espèces${asterisk} dans le temps`);
         downStatsContents.innerHTML+="<br/>";
 
         stats.style.cursor="unset";
@@ -278,9 +299,9 @@ function buildStatusGraph () {
     const statusData = {
         labels: statusLabels,
         datasets: [{
-            //			label: 'Répartition des observations par statut de validation',
-            backgroundColor: "rgb(255, 99, 132)",
-            borderColor: "rgb(255, 99, 132)",
+            backgroundColor: [LIGHT_CHART_COLORS.red,LIGHT_CHART_COLORS.orange,LIGHT_CHART_COLORS.yellow,LIGHT_CHART_COLORS.green,LIGHT_CHART_COLORS.blue,LIGHT_CHART_COLORS.purple,LIGHT_CHART_COLORS.grey],
+            borderColor: [CHART_COLORS.red,CHART_COLORS.orange,CHART_COLORS.yellow,CHART_COLORS.green,CHART_COLORS.blue,CHART_COLORS.purple,CHART_COLORS.grey],
+            borderWidth: 1,
             data: graphData,
         }]
     };
@@ -329,10 +350,10 @@ function buildScoresGraph () {
         labels: scoresLabels,
         datasets: [{
             // label: 'Répartition des observations validées par score',
-            backgroundColor: ["rgba(255,99, 132, 0.2)","rgba(255, 159, 64, 0.2)","rgba(255, 205, 86, 0.2)","rgba(75,192, 192, 0.2)","rgba(54, 162, 235, 0.2)"],
-            borderColor: ["rgb(255, 99, 132)","rgb(255, 159,64)","rgb(255, 205, 86)","rgb(75, 192, 192)","rgb(54, 162, 235)"],
+            backgroundColor: [LIGHT_CHART_COLORS.red,LIGHT_CHART_COLORS.orange,LIGHT_CHART_COLORS.yellow,LIGHT_CHART_COLORS.green,LIGHT_CHART_COLORS.blue],
+            borderColor: [CHART_COLORS.red,CHART_COLORS.orange,CHART_COLORS.yellow,CHART_COLORS.green,CHART_COLORS.blue],
             data: [count0to100, count100to1000, count1000to2000, count2000to5000, count5000AndMore],
-            "borderWidth": 1
+            borderWidth: 1
         }]
     };
     const scoresConfig = {
@@ -489,41 +510,38 @@ function buildPropositionsGraph () {
         labels: Array.from(propositionsPerMonthMap.keys()),
         datasets: [{
             label: "Taux de proposition d'espèces",
-            backgroundColor: "rgba(54, 162, 235, 0.6)",
-            // borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: LIGHT_CHART_COLORS.blue,
+            borderColor: CHART_COLORS.blue,
             data: Array.from(propositionRatePerMonth.values()),
             type: "line",
             order: 1,
             segment: {
-                borderColor: ctx => skipped(ctx, "rgba(54, 162, 235, 0.2)"),
+                borderColor: ctx => skipped(ctx, LIGHT_CHART_COLORS.blue),
                 borderDash: ctx => skipped(ctx, [6, 6]),
             },
             spanGaps: true,
             yAxisID: "yAxisleft" // matching scale/axis?
         },{
             label: "Proportion de propositions corrigées",
-            backgroundColor: "rgba(255,99, 132, 0.6)",
-            // borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: LIGHT_CHART_COLORS.red,
+            borderColor: CHART_COLORS.red,
             data: Array.from(failureRateMapPerMonth.values()),
             type: "line",
             order: 0,
             segment: {
-                borderColor: ctx => skipped(ctx, "rgba(255,99, 132, 0.2)"),
+                borderColor: ctx => skipped(ctx, LIGHT_CHART_COLORS.red),
                 borderDash: ctx => skipped(ctx, [6, 6]),
             },
             spanGaps: true,
             yAxisID: "yAxisleft" // matching scale/axis?
         },{
             label: "Nombre d'observations",
-            backgroundColor: "rgba(75,192, 192, 0.6)",
-            // borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: LIGHT_CHART_COLORS.green,
+            borderColor: CHART_COLORS.green,
             data: Array.from(observationsPerMonthMap.values()),
             type: "bar",
+            borderWidth: 1,
             order: 2,
-            segment: {
-                borderColor: ctx => skipped(ctx, "rgba(54, 162, 235, 0.2)"),
-                borderDash: ctx => skipped(ctx, [6, 6]),
-            },
             spanGaps: true,
             yAxisID: "yAxisRight" // matching scale/axis?
         }]
@@ -579,8 +597,9 @@ function buildRegionsGraph () {
         labels: regionsLabels,
         datasets: [{
             // label: 'Répartition des observations par région',
-            backgroundColor: "rgb(255, 99, 132)",
-            borderColor: "rgb(255, 99, 132)",
+            backgroundColor: LIGHT_CHART_COLORS.red,
+            borderColor: CHART_COLORS.red,
+            borderWidth: 1,
             data: countRegionsData,
         }]
     };
@@ -634,8 +653,9 @@ function buildTimelineGraph () {
         labels: Array.from(monthList.keys()),
         datasets: [{
             // label: 'Répartition des observations dans le temps',
-            backgroundColor: "rgb(255, 99, 132)",
-            borderColor: "rgb(255, 99, 132)",
+            backgroundColor: LIGHT_CHART_COLORS.purple,
+            borderColor: CHART_COLORS.purple,
+            borderWidth: 1,
             data: Array.from(monthList.values()),
         }]
     };
@@ -676,8 +696,9 @@ function	buildGroupsGraph () {
         labels: groupsSimpleLabels,
         datasets: [{
             // label: 'Répartition des observations par groupe grand public',
-            backgroundColor: "rgb(255, 99, 132)",
-            borderColor: "rgb(255, 99, 132)",
+            backgroundColor: LIGHT_CHART_COLORS.green,
+            borderColor: CHART_COLORS.green,
+            borderWidth: 1,
             data: countGroupSimpleData,
         }]
     };
