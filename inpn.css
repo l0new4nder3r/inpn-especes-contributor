@@ -459,7 +459,7 @@
 		font-family: sans-serif;
 		text-decoration: none;
 		cursor: help;
-		width: 90%;
+		width: max-content;
 		display: block;
 	}
 
