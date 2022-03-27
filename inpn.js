@@ -28,6 +28,8 @@ let areSortersDisplayed = false;
 // Timout constant for API calls
 export const TIMEOUT = 30000;
 const isTouchDevice = Utils.isMobileDevice ();
+// Are all obs downloaded?
+let allDownloaded = false;
 
 const LOAD_OBS = "⇩ Charger";
 const UPDATE_OBS = "↺ Mettre à jour";
@@ -53,12 +55,9 @@ async function loadAll () {
 
     loadUserId();
 
-    // inactivateBtn('allGo');
-    // inactivateBtn('allStat');
     toggleAllNoneButtonsByFamily("go");
     toggleAllNoneButtonsByFamily("status");
-    inactivateBtn("updateObs");
-    inactivateBtn("loadAll");
+    deactivateBtn("loadAll");
     document.getElementById("upwards").style.opacity = "0";
 
     const helpClosed = await Utils.checkHelpCookie();
@@ -76,8 +75,12 @@ async function loadAll () {
     await loadLatestObs();
     if (latestObs!=null) {
         // console.log("latestObs ok");
-        if (latestObs.totLines>0) {
+        if (latestObs.totLines>0 && latestObs.totLines>listObservations.observations.length) {
             Utils.addNotification("success","Succès","Première observation chargée. Nombre total d'observations restant : "+(latestObs.totLines-1));
+        } else {
+            Utils.addNotification("success","Succès","Toutes les "+(latestObs.totLines-1)+" observations ont été chargées.");
+            allDownloaded=true;
+            activateUpdateAllButton();
         }
     } else {
         Utils.addNotification("","Echec","Erreur lors du chargement de la dernière observation");
@@ -128,8 +131,7 @@ async function loadUserId () {
 
 function initListeners () {
     // TODO constants arrays, functions...
-    document.querySelector("#loadAll").addEventListener("click", loopLoading);
-    document.querySelector("#updateObs").addEventListener("click", updateObservations);
+    document.querySelector("#loadAll").addEventListener("click", loadOrUpdate);
     document.querySelector("#toggleLeftFilters").addEventListener("click", toggleLeftFilters);
     document.querySelector("#toggleRightSorters").addEventListener("click", toggleRightSorters);
     document.querySelector("#help").addEventListener("click", showHelp);
@@ -174,6 +176,14 @@ function openChoice (event) {
         choiceDiv.style.right="-6em";
     }
     //box-shadow: -10px 10px 0px -3px black;
+}
+
+function loadOrUpdate () {
+    if (!allDownloaded) {
+        loopLoading();
+    } else {
+        updateObservations();
+    }
 }
 
 /***
@@ -387,7 +397,7 @@ export async function loopLoading () {
                     buttonLoadAll.innerHTML = LOAD_OBS;
                     buttonLoadAll.title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
                 } else {
-                    deactivateLoadAllButton();
+                    allDownloaded = true;
                     activateUpdateAllButton();
                     Utils.addNotification("success","Succès","Toutes les "+latestObs.totLines+" observations ont bien été chargées.");
                 }
@@ -426,9 +436,7 @@ async function loadSomeMore () {
 
             } else {
                 // Error while loading
-
             }
-
             isMoreLoadingOn=false;
             stopProgressAnimation();
 
@@ -436,13 +444,14 @@ async function loadSomeMore () {
             if (index< latestObs.totLines) {
                 // do nothing
             } else {
-                deactivateLoadAllButton();
+                allDownloaded=true;
                 activateUpdateAllButton();
             }
             // list ids in localStorage
             saveCurrentUserDataInStorage();
         } else {
             // console.log("not loading any more, we reached the end!");
+            allDownloaded = true;
         }
     } else {
         console.log("loading still in progress");
@@ -591,21 +600,16 @@ async function updateObsFromStorageIds (pastIds) {
             // error?
             // activate load all button ?
             activateBtn("loadAll");
-            // useless? already the case?
-            inactivateBtn("updateObs");
         } else {
             saveCurrentUserDataInStorage();
-            // all loaded, inactivate load all (useless, already?)
-            inactivateBtn("loadAll");
-            // update button activated
-            activateBtn("updateObs");
+            allDownloaded = true;
+            activateUpdateAllButton();
         }
 
     } else {
-    // all loaded, inactivate load all (useless, already?)
-        inactivateBtn("loadAll");
-        // update button activated
-        activateBtn("updateObs");
+        allDownloaded = true;
+        activateUpdateAllButton();
+        // all loaded
     }
 }
 
@@ -799,9 +803,6 @@ export async function changeContributor () {
                 }
             } else {
                 // ok to change...
-                // stop current loading if running
-                isLoopLoadingOn=false;
-                isMoreLoadingOn=false;
                 // change user, reinit all
                 USER_ID = userId;
                 reinit();
@@ -828,8 +829,10 @@ function cleanAll () {
 function reinit () {
     listObservations=null;
     latestObs=null;
+    // stop current loading if running
     isLoopLoadingOn=false;
     isMoreLoadingOn=false;
+    allDownloaded=false;
     if (observer!=null) {
         observer.unobserve(document.querySelector("#bottom"));
         observer=null;
@@ -915,6 +918,7 @@ async function loadRightAmountMissingObs (diff) {
 }
 
 export async function updateObservations () {
+    deactivateBtn("loadAll");
     Utils.addNotification("info","Information","Démarrage de la mise à jour des observations non encore validées");
     let callCpt=0;
     let updatedCpt=0;
@@ -950,7 +954,7 @@ export async function updateObservations () {
         renderProgress();
         renderObs();
     } else {
-        alert("Erreur lors du chargement de la première observation. Veuillez réessayer ultérieurement");
+        alert("Erreur lors du chargement de la plus récente observation. Veuillez réessayer ultérieurement");
     }
     if (updatedCpt>0||newLoadedObsCpt>0) {
     // we had changes!
@@ -964,6 +968,7 @@ export async function updateObservations () {
     }
     console.log(updatedCpt+" updated validated observations and "+newLoadedObsCpt+" new loaded one(s)");
     stopProgressAnimation();
+    activateBtn("loadAll");
 }
 
 /***
@@ -972,17 +977,12 @@ export async function updateObservations () {
 **
 ****/
 
-function deactivateLoadAllButton () {
-    const buttonLoadAll = document.getElementById("loadAll");
-    buttonLoadAll.innerHTML = "Observations chargées";
-    buttonLoadAll.title=`Toutes les observations de ${currentContributor.pseudo} ont été chargées.`;
-    buttonLoadAll.style.pointerEvents="none";
-    buttonLoadAll.style.backgroundColor="lightgray";
-}
-
 function activateUpdateAllButton () {
-    activateBtn("updateObs");
-    document.getElementById("updateObs").title="Lancer une mise à jour de toutes les observations non encore validées (peut prendre du temps!)";
+    // turn "loadAll button" into "updateAll button"
+    const loadAllButton = document.getElementById("loadAll");
+    loadAllButton.innerHTML=UPDATE_OBS;
+    activateBtn("loadAll");
+    loadAllButton.title="Lancer une mise à jour de toutes les observations non encore validées (peut prendre du temps!)";
 }
 
 function startProgressAnimation () {
@@ -1027,10 +1027,10 @@ function toggleAllNoneButtonsByFamily (prefix) {
         }
 
         if (areAllOn) {
-            inactivateBtn(allBtnId);
+            deactivateBtn(allBtnId);
             activateBtn(noneBtnId);
         } else if (areAllOff) {
-            inactivateBtn(noneBtnId);
+            deactivateBtn(noneBtnId);
             activateBtn(allBtnId);
         } else {
             // some on some off
@@ -1042,29 +1042,29 @@ function toggleAllNoneButtonsByFamily (prefix) {
 
 export function allGo () {
     toggleAllFilters(true,"go");
-    inactivateBtn("allGo");
+    deactivateBtn("allGo");
     activateBtn("noneGo");
 }
 
 export function noneGo () {
     toggleAllFilters(false,"go");
-    inactivateBtn("noneGo");
+    deactivateBtn("noneGo");
     activateBtn("allGo");
 }
 
 export function allStat () {
     toggleAllFilters(true,"status");
-    inactivateBtn("allStat");
+    deactivateBtn("allStat");
     activateBtn("noneStat");
 }
 
 export function noneStat () {
     toggleAllFilters(false,"status");
-    inactivateBtn("noneStat");
+    deactivateBtn("noneStat");
     activateBtn("allStat");
 }
 
-function inactivateBtn (id) {
+function deactivateBtn (id) {
     document.getElementById(id).style.backgroundColor="gray";
     document.getElementById(id).style.pointerEvents="none";
     document.getElementById(id).style.fontStyle="italic";

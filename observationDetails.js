@@ -182,6 +182,9 @@ export async function addProtectionStatus (referenceCode) {
                     }
                     document.querySelector(".protectionStatus").innerHTML+="<div>Espèce sur liste rouge</div>";
                 }
+                if (protectionStatuses.statuses.includes("THREATENED")) {
+                    document.querySelector(".protectionStatus").innerHTML+="<div style=\"font-weight:bold;\">Espèce menacée</div>";
+                }
                 if (protectionStatuses.statuses.includes("PROTECTED")) {
                     document.querySelector(".protectionStatus").innerHTML+="<div style=\"font-weight:bold;\">Espèce protégée</div>";
                 }
@@ -307,8 +310,15 @@ function buildPhotos (chosenObs) {
             // init, magnifier on first image
             magnifierId="id=\"magnify\"";
         }
+        let htmlPhotoNumbers;
+        if (chosenObs.photos.length===1) {
+            // not displaying the numbers
+            htmlPhotoNumbers = "<div class=\"numbertext\"></div>";
+        } else {
+            htmlPhotoNumbers = `<div class="numbertext">${cpt} / ${chosenObs.photos.length}</div>`;
+        }
         htmlPhotos +=`<div class="mySlides fade">
-										<div class="numbertext">${cpt} / ${chosenObs.photos.length}</div>
+										${htmlPhotoNumbers}
 										<div class="toggleMagnify">&#x1F50D;</div>
 										<img ${magnifierId} title="Cliquer dans l'image pour changer de format" src="${photo.inpnFileUri}" style="object-fit: cover;">
 								</div>`;
