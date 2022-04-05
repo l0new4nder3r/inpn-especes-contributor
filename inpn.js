@@ -858,12 +858,15 @@ export async function getOneObservation (id) {
     return await Utils.callAndWaitForJsonAnswer(getOneUrl, TIMEOUT);
 }
 
+// Compares two observations by their dateModif property
 function compareStringDatesModif (a,b) {
     if (a.dateModif==="" && b.dateModif==="") {
         return 0;
-    } else if (a.dateModif==="") {
+    } else if (a.dateModif==null && b.dateModif==null) {
+        return 0;
+    } else if (a.dateModif==="" || a.dateModif==null) {
         return -1;
-    } else if (b.dateModif==="") {
+    } else if (b.dateModif==="" || b.dateModif==null) {
         return 1;
     } else {
         const dateA = new Date(a.dateModif);
