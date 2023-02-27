@@ -746,8 +746,14 @@ function renderObs () {
                 validLabel=obs.validation.lbStatus;
             }
 
+            let perfect="";
+            if (hasPerfectPic(obs.photos)) {
+                perfect="<div class=\"perfect\">✨</div>";
+            }
+
             const htmlSegment = `<div id="${obs.idData}" class="obs status${validStatus} go${obs.groupSimple} quests${questStatus}" ${filtered}>
                               <img src="${obs.photos[0].thumbnailFileUri}" >
+                              ${perfect}
                               <div class="score">${obs.scoreTotal} pts</div>
                               <div title="${obs.nomCommuns}" class="details">
                                 <h2>${title} </h2>
@@ -777,6 +783,18 @@ function renderObs () {
     } else {
         console.error("listObs was undefined, could not render any obs");
     }
+}
+
+function hasPerfectPic (photos) {
+    let hasPerfect=false;
+    for (const photo of photos) {
+        if (photo.cdQualification!=null && photo.cdQualification===1) {
+            hasPerfect=true;
+            // console.log("found perfect picture! "+photo.inpnFileUri);
+            break;
+        }
+    }
+    return hasPerfect;
 }
 
 function isValidationEmpty (observation) {

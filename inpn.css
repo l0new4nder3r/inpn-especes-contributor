@@ -168,6 +168,17 @@
 		cursor: default;
 	}
 
+  .perfect {
+    position: relative;
+    top: -195px;
+    padding: 2px;
+    filter: opacity(80%);
+    left: 2px;
+    float: left;
+    cursor: default;
+    font-size: 20px;
+  }
+
 	.progress {
 		font-weight: bold;
 		font-style: italic;
