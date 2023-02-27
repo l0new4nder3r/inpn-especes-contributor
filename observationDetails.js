@@ -53,13 +53,13 @@ export function showDetails (idData, isTouchDevice) {
     }
 
     // erreur, c'est inversé?! wtf
-    displayMap(chosenObs.Y,chosenObs.X);
+    displayMap(chosenObs.location.y,chosenObs.location.x);
 
     // get score details
     addScoreDetails(idData);
 
     // protected and red list statuses?
-    addProtectionStatus(chosenObs.cdRef);
+    addProtectionStatus(chosenObs.identification.cdRef);
 
     // rare species
     addRareSpeciesInfo(chosenObs);
@@ -123,8 +123,8 @@ export async function addQuestData (chosenObs) {
 
 export async function addRareSpeciesInfo (chosenObs) {
     // espèce ayant moins de 5000 données sur l'INPN https://openobs.mnhn.fr/api/occurrences/stats/taxon/98651
-    if (chosenObs.cdRef!=null&&chosenObs.cdRef!=="") {
-        const occurrencesUrl = `https://openobs.mnhn.fr/api/occurrences/stats/taxon/${chosenObs.cdRef}`;
+    if (chosenObs.identification.cdRef!=null&&chosenObs.identification.cdRef!=="") {
+        const occurrencesUrl = `https://openobs.mnhn.fr/api/occurrences/stats/taxon/${chosenObs.identification.cdRef}`;
         const occurrences = await callAndWaitForJsonAnswer(occurrencesUrl, TIMEOUT);
         if (occurrences==null || occurrences.occurrenceCount==null) {
             console.error("Erreur lors de l'appel du comptage des observations");
@@ -138,6 +138,7 @@ export async function addRareSpeciesInfo (chosenObs) {
 }
 
 export async function addScoreDetails (idData) {
+    // TODO fix me when new API found !!!
     const scoreDetailsUrl = `${inpnUrlBase}score/iddata/${idData}`;
     const scoreDetails = await callAndWaitForJsonAnswer(scoreDetailsUrl, TIMEOUT);
     if (scoreDetails==null) {
@@ -197,16 +198,16 @@ function buildInfos (chosenObs) {
 
     let validated = "";
     // corrected
-    if (chosenObs.isCorrected==="true") {
+    if (chosenObs.isCorrected===true) {
         validated=`<div title="Proposition d'espèce corrigée" class="validated">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Cross_red_circle.svg/32px-Cross_red_circle.svg.png">
         </div>`;
-    } else if (chosenObs.isValidated==="true" && chosenObs.taxonOrigin.cdNomOrigin!=null) {
+    } else if (chosenObs.isValidated===true && chosenObs.identification.cdNom!=null) {
         // validated and correctly guessed
         validated=`<div title="Observation et proposition d'espèce validées!" class="validated">
 				<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Icons8_flat_approval.svg/32px-Icons8_flat_approval.svg.png">
 				</div>`;
-    } else if (chosenObs.isValidated==="true" && chosenObs.taxonOrigin.cdNomOrigin==null) {
+    } else if (chosenObs.isValidated===true && chosenObs.identification.cdNom==null) {
         // validated but species not guessed
         validated=`<div title="Observation validée" class="validated">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Icons8_flat_checkmark.svg/32px-Icons8_flat_checkmark.svg.png">
@@ -224,17 +225,17 @@ function buildInfos (chosenObs) {
     }
 
     let titleLink = "";
-    let nomComplet = chosenObs.nomComplet;
+    let nomComplet = chosenObs.identification.nomCompletNonHtml;
     if (nomComplet==="") {
         nomComplet="-";
         titleLink=`<h3>${nomComplet}</h3>`;
     } else {
-        if (chosenObs.cdNom!==0) {
+        if (chosenObs.identification.cdNom!==0) {
             let validationStatus="99";
             if (chosenObs.validation.idStatus!=null) {
                 validationStatus=chosenObs.validation.idStatus;
             }
-            titleLink= `<a class="linkMore status${validationStatus}" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.cdNom}" target="_blank">
+            titleLink= `<a class="linkMore status${validationStatus}" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.identification.cdNom}" target="_blank">
 						${nomComplet}
 					</a>`;
         } else {
@@ -243,9 +244,9 @@ function buildInfos (chosenObs) {
     }
 
     let correctedName = "";
-    if (chosenObs.isCorrected==="true" && chosenObs.taxonOrigin.nomCompletOrigin!=="") {
-        correctedName=`<a class="corrected" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.taxonOrigin.cdNomOrigin}" target="_blank">
-					${chosenObs.taxonOrigin.nomCompletOrigin}</a>`;
+    if (chosenObs.isCorrected==="true" && chosenObs.identification.nomCompletNonHtml!=="") {
+        correctedName=`<a class="corrected" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.identification.nomCompletNonHtml}" target="_blank">
+					${chosenObs.identification.nomCompletNonHtml}</a>`;
     }
 
     let statusComment="";
@@ -256,7 +257,7 @@ function buildInfos (chosenObs) {
     const creationDate = new Date(chosenObs.dateCrea).toLocaleString();
 
     let commentaire = "";
-    if (chosenObs.commentaire!=="") {
+    if (chosenObs.commentaire!=null&&chosenObs.commentaire!=="") {
         commentaire=`<div class="obsComment">"${chosenObs.commentaire}"</div>`;
     }
 
@@ -266,14 +267,14 @@ function buildInfos (chosenObs) {
 							${correctedName}
 							<div class="protectionStatus"></div>
 							${statusComment}
-							<p>${chosenObs.lbGroupSimple}</p>
-							<p style="position: relative;width: 90%;;">${chosenObs.nomCommuns}</p>
+							<p>${chosenObs.identification.groupSimple.lbGroupSimple}</p>
+							<p style="position: relative;width: 90%;;">${chosenObs.identification.nomVern}</p>
 							<p id="rare"></p>
 							<div id="map"></div>
-							<p style="font-style:italic;">${chosenObs.commune} (${chosenObs.numDepartement}), le ${creationDate}</p>
+							<p style="font-style:italic;">${chosenObs.location.commune.name} (${chosenObs.location.departement.code}), le ${creationDate}</p>
 							${commentaire}
 							<p id="quest"></p>
-							<p>${chosenObs.scoreTotal} points</p>
+							<p>${chosenObs.score} points</p>
 							<div class="scoreDetails"></div>`;
 
     // adding the progress part again
@@ -321,7 +322,8 @@ function buildPhotos (chosenObs) {
 										${htmlPhotoNumbers}
 										<div class="toggleMagnify">&#x1F50D;</div>
 										<img ${magnifierId} title="Cliquer dans l'image pour changer de format" src="${photo.inpnFileUri}" style="object-fit: cover;">
-								</div>`;
+                    <div class="qualification">${photo.lbQualification}</div>
+                </div>`;
         cpt++;
     });
     // add the links for the slideshow

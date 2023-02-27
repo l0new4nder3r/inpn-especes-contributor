@@ -37,7 +37,7 @@ async function loadAll () {
 
             // get associated user
             const userId = obs.idUtilisateur;
-            const urlContributor=inpnUrlBase+"contributor/"+userId;
+            const urlContributor=inpnUrlBase+"users/"+userId;
             const contributor = await Utils.callAndWaitForJsonAnswer(urlContributor, TIMEOUT);
             addUserDetails(contributor);
         } else {
@@ -55,7 +55,7 @@ function displayObservation (obs) {
     if (isTouchDevice) {
         document.querySelector(".toggleMagnify").style.visibility="collapse";
     }
-    Details.displayMap(obs.Y,obs.X);
+    Details.displayMap(obs.location.y,obs.location.x);
     Details.addScoreDetails(obs.idData);
     Details.addProtectionStatus(obs.cdRef);
     Details.addRareSpeciesInfo(obs);
@@ -94,7 +94,7 @@ async function addUserDetails (contributor) {
 
         // adding number of validated obs as a tooltip for score
         // validated obs API call
-        const urlValidatedObservations="https://inpn.mnhn.fr/inpn-especes/data?page=0&size=1&filtreStatutValidation=5&userIds="+contributor.idUtilisateur+"&sort=-datePublished";
+        const urlValidatedObservations="https://inpn.mnhn.fr/inpn-especes/data/validation?page=0&size=1&filtreStatutValidation=5&userIds="+contributor.idUtilisateur+"&sort=-datePublished";
         const response = await Utils.callAndWaitForJsonAnswer(urlValidatedObservations, TIMEOUT);
         let obsValidatedCount;
         if (response!=null && response.page!=null && response.page.totalElements!=null) {
@@ -127,7 +127,15 @@ async function exists (observationId) {
     const getOneUrl=inpnUrlBase+"data/"+observationId;
     const randomObservation = await Utils.callAndWaitForJsonAnswer(getOneUrl, TIMEOUT);
     // console.log(randomObservation);
-    return randomObservation!==undefined;
+    let exists=false;
+    if (randomObservation!==undefined) {
+        if (randomObservation.status!=null && randomObservation.status===404) {
+            exists=false;
+        } else if (randomObservation.status==null) {
+            exists=true;
+        }
+    }
+    return exists;
 }
 
 // stolen from here https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random

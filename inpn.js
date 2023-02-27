@@ -5,11 +5,13 @@ import { buildStats } from "./contributorStats.js";
 
 /* eslint no-console: 0 */
 
-export const inpnUrlBase = "https://inpn.mnhn.fr/inpn-web-services/inpnespece/";
+export const inpnUrlBase = "https://inpn.mnhn.fr/inpn-especes/";
 export let USER_ID;
 
 // latest obs
 export let latestObs;
+// total number of obs from latestObs call
+export let totalElements;
 // global list of observations to gather
 export let listObservations;
 // contributor info
@@ -75,10 +77,10 @@ async function loadAll () {
     await loadLatestObs();
     if (latestObs!=null) {
         // console.log("latestObs ok");
-        if (latestObs.totLines>0 && latestObs.totLines>listObservations.observations.length) {
-            Utils.addNotification("success","Succès","Première observation chargée. Nombre total d'observations restant : "+(latestObs.totLines-1));
+        if (totalElements>0 && totalElements>listObservations.observations.length) {
+            Utils.addNotification("success","Succès","Première observation chargée. Nombre total d'observations restant : "+(totalElements-1));
         } else {
-            Utils.addNotification("success","Succès","Toutes les "+(latestObs.totLines-1)+" observations ont été chargées.");
+            Utils.addNotification("success","Succès","Toutes les "+(totalElements-1)+" observations ont été chargées.");
             allDownloaded=true;
             activateUpdateAllButton();
         }
@@ -87,7 +89,7 @@ async function loadAll () {
     }
 
     // WIP
-    const userData = Utils.getFromLocalStorage(currentContributor.idUtilisateur);
+    const userData = Utils.getFromLocalStorage(currentContributor.id);
     let pastIds;
     if (userData!=null) {
         pastIds = userData.ids;
@@ -234,10 +236,10 @@ function handleIntersect (entries, observer) {
 
 async function loadContributor () {
     // url to load contributo info
-    const urlContributor=inpnUrlBase+"contributor/"+USER_ID;
+    const urlContributor=inpnUrlBase+"users/"+USER_ID+"?embed=SCORES";
     console.log("loading contributor info from: "+urlContributor);
     //const urlValidatedObservations=inpnUrlBase+"data?paginStart=1&paginEnd=1&idUtilisateur="+USER_ID+"&filtreStatutValidation=5";
-    const urlValidatedObservations="https://inpn.mnhn.fr/inpn-especes/data?page=0&size=1&filtreStatutValidation=5&userIds="+USER_ID+"&sort=-datePublished";
+    const urlValidatedObservations="https://inpn.mnhn.fr/inpn-especes/data/validation?page=0&size=1&filtreStatutValidation=5&userIds="+USER_ID+"&sort=-datePublished";
 
     async function renderContributor () {
         currentContributor = await Utils.callAndWaitForJsonAnswer(urlContributor, TIMEOUT);
@@ -247,8 +249,8 @@ async function loadContributor () {
         } else {
             let html = "";
             const htmlSegment = `<img id="profilePic" alt="contributor profile picture" src="${currentContributor.avatar}">
-               <div title="${currentContributor.prenom} ${currentContributor.nom}" class="pseudo">${currentContributor.pseudo}</div>
-               <div class="totalScore">${currentContributor.ScoreTotal} points</div>`;
+               <div title="${currentContributor._embedded.scores.status}" class="pseudo">${currentContributor.pseudo}</div>
+               <div class="totalScore">${currentContributor._embedded.scores.totalPoints} points</div>`;
             html += htmlSegment;
             html += "</div>";
             const container = document.querySelector(".contributorDetails");
@@ -278,16 +280,20 @@ async function loadContributor () {
 
 async function loadLatestObs () {
     //url to load latest observation
-    const urlLatestObservation=inpnUrlBase+"data?paginStart=1&paginEnd=1&idUtilisateur="+USER_ID;
+    const urlLatestObservation=inpnUrlBase+"data/validation?page=0&size=1&sort=-datePublished&userIds="+USER_ID;
     console.log("loading latest obs from: "+urlLatestObservation);
 
     async function renderLatestObs () {
-        const observation = await Utils.callAndWaitForJsonAnswer(urlLatestObservation, TIMEOUT);
-        if (observation!=null) {
+        const embeddedObservations = await Utils.callAndWaitForJsonAnswer(urlLatestObservation, TIMEOUT);
+        const observations = embeddedObservations._embedded;
+        if (observations!=null) {
             index = 1;
-            latestObs = observation;
+            latestObs = observations;
             // console.log("latestObs is set!");
-            listObservations = observation;
+            console.log("latestObs is set!");
+            console.log(latestObs);
+            listObservations = observations;
+            totalElements=embeddedObservations.page.totalElements;
             renderProgress();
         } else {
             alert("Erreur lors du chargement de la première observation. Veuillez réessayer ultérieurement");
@@ -305,9 +311,9 @@ function renderProgress () {
 
     let percentage ="N/A";
     let total = "N/A";
-    if (latestObs!=null&&latestObs.totLines!==0) {
-        total = latestObs.totLines;
-        percentage = (size/latestObs.totLines*100).toFixed(0);
+    if (totalElements!=null&&totalElements!==0) {
+        total = totalElements;
+        percentage = (size/totalElements*100).toFixed(0);
     }
 
     if (currentContributor!=null) {
@@ -325,9 +331,11 @@ async function getAndAddAllObservations (url) {
         alert("Erreur lors du chargement des observations. Veuillez réessayer ultérieurement");
     } else {
         // preventing duplicates in observations by idData
-        observation.observations.forEach(newObs=>{
+        console.log(observation);
+        observation._embedded.observations.forEach(newObs=>{
             if (!listObservations.observations.some(o => o.idData === newObs.idData)) {
                 listObservations.observations.push(newObs);
+                console.log("Added obs id "+newObs.idData+" to the list. Size is now "+listObservations.observations.length);
             } else {
                 console.log("No need to add obs id "+newObs.idData+" as it was already present in list");
             }
@@ -366,16 +374,16 @@ export async function loopLoading () {
                 startProgressAnimation();
 
                 // looping
-                for (index; index< latestObs.totLines; index=index+16) {
+                for (index; index< totalElements; index=index+16) {
                     // could be stopped from elsewhere...
                     if (isLoopLoadingOn) {
                         let paginEnd=index+16;
-                        if (paginEnd>latestObs.totLines) {
-                            paginEnd=latestObs.totLines;
+                        if (paginEnd>totalElements) {
+                            paginEnd=totalElements;
                         }
                         const paginStart = index+1;
-                        const obsUrl=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+USER_ID;
-                        // console.log("loop : loading obs from "+obsUrl);
+                        const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+16+"&sort=-datePublished&userIds="+USER_ID;
+                        console.log("loop : loading obs from "+obsUrl);
 
                         if (await getAndAddAllObservations(obsUrl)) {
                             // rendering
@@ -393,13 +401,13 @@ export async function loopLoading () {
                 // turn "load all" button back to normal
 
                 // if not finished
-                if (index< latestObs.totLines) {
+                if (index< totalElements) {
                     buttonLoadAll.innerHTML = LOAD_OBS;
                     buttonLoadAll.title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
                 } else {
                     allDownloaded = true;
                     activateUpdateAllButton();
-                    Utils.addNotification("success","Succès","Toutes les "+latestObs.totLines+" observations ont bien été chargées.");
+                    Utils.addNotification("success","Succès","Toutes les "+totalElements+" observations ont bien été chargées.");
                 }
                 // trying to keep list ids storage
                 saveCurrentUserDataInStorage();
@@ -416,17 +424,17 @@ async function loadSomeMore () {
 
     if (latestObs!=null && !isMoreLoadingOn && !isLoopLoadingOn) {
 
-        if (listObservations.observations.length<latestObs.totLines && index<latestObs.totLines) {
+        if (listObservations.observations.length<totalElements && index<totalElements) {
             isMoreLoadingOn=true;
             startProgressAnimation();
 
             const paginStart = index+1;
             let paginEnd=index+16;
-            if (paginEnd>latestObs.totLines) {
-                paginEnd=latestObs.totLines;
+            if (paginEnd>totalElements) {
+                paginEnd=totalElements;
             }
-            const obsUrl=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+USER_ID;
-            // console.log("loadMore : loading obs from "+obsUrl);
+            const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+16+"&sort=-datePublished&userIds="+USER_ID;
+            console.log("loadMore : loading obs from "+obsUrl);
 
             if (await getAndAddAllObservations(obsUrl)) {
                 // rendering
@@ -441,7 +449,7 @@ async function loadSomeMore () {
             stopProgressAnimation();
 
             // have we reached the end?
-            if (index< latestObs.totLines) {
+            if (index< totalElements) {
                 // do nothing
             } else {
                 allDownloaded=true;
@@ -478,7 +486,7 @@ function saveCurrentUserDataInStorage () {
             "score": currentContributor.ScoreTotal
         };
         console.log("Will attempt to save "+ids.length+" ids to localStorage");
-        Utils.putInLocalStorage(currentContributor.idUtilisateur,userData);
+        Utils.putInLocalStorage(currentContributor.id,userData);
     }
 }
 
@@ -516,10 +524,10 @@ async function updateObsFromStorageIds (pastIds) {
     await renderObs();
     renderProgress();
     // compare totLines, dateCreation max?
-    console.log("On "+listObservations.totLines+" obs to load, "+listObservations.observations.length+" are currently displayed");
+    console.log("On "+totalElements+" obs to load, "+listObservations.observations.length+" are currently displayed");
     // get the remaining obs (totLines helps? not? Load all modified to not add if id already present)
-    if (listObservations.totLines>listObservations.observations.length) {
-        let numberMissingObs = listObservations.totLines-listObservations.observations.length;
+    if (totalElements>listObservations.observations.length) {
+        let numberMissingObs = totalElements-listObservations.observations.length;
         if (firstObsInPastIds) {
             numberMissingObs++;
         }
@@ -527,13 +535,13 @@ async function updateObsFromStorageIds (pastIds) {
         // latest (first) obs - missing obs? - obs already loaded by id - missing obs, never loaded?
         console.log("missing "+numberMissingObs+" obs");
         // starting at 2 because we already have the first obs
-        let cpt = 2;
+        let cpt = 1;
         let fastForward=false;
         for (cpt; cpt<= numberMissingObs+1; cpt=cpt+1) {
 
             const paginEnd=cpt;
             const paginStart = cpt;
-            const obsUrl=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+USER_ID;
+            const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+1+"&sort=-datePublished&userIds="+USER_ID;
             console.log("complete after storage ids : loading obs from "+obsUrl);
 
             const observation = await Utils.callAndWaitForJsonAnswer(obsUrl, TIMEOUT);
@@ -543,7 +551,7 @@ async function updateObsFromStorageIds (pastIds) {
                 break;
             } else {
                 // preventing duplicates in observations by idData
-                observation.observations.forEach(newObs=>{
+                observation._embedded.observations.forEach(newObs=>{
                     if (!listObservations.observations.some(o => o.idData === newObs.idData)) {
                         listObservations.observations.push(newObs);
                     } else {
@@ -561,18 +569,18 @@ async function updateObsFromStorageIds (pastIds) {
 
         if (fastForward) {
             // means we can fast forward if still needed!
-            if (listObservations.totLines>listObservations.observations.length) {
+            if (totalElements>listObservations.observations.length) {
                 // keep going. But let's bypass all the obs already loaded...
                 let cptEnd = listObservations.observations.length+1;
                 // 1 2 12 4.
                 // 19>15 On veut charger de 19-4 à 19
                 // (1) - (2 3) - 4 5 6 7 8 9 10 11 12 13 14 15 - 16 17 18 19
 
-                for (cptEnd; cptEnd<= listObservations.totLines; cptEnd=cptEnd+1) {
+                for (cptEnd; cptEnd<= totalElements; cptEnd=cptEnd+1) {
 
                     const paginEnd=cptEnd;
                     const paginStart = cptEnd;
-                    const obsUrlEnd=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+paginEnd+"&idUtilisateur="+USER_ID;
+                    const obsUrlEnd=inpnUrlBase+"data/validation?page="+paginStart+"&size="+1+"&sort=-datePublished&userIds="+USER_ID;
                     console.log("complete END after storage ids : loading obs from "+obsUrlEnd);
 
                     const observation = await Utils.callAndWaitForJsonAnswer(obsUrlEnd, TIMEOUT);
@@ -582,7 +590,7 @@ async function updateObsFromStorageIds (pastIds) {
                         break;
                     } else {
                         // preventing duplicates in observations by idData
-                        observation.observations.forEach(newObs=>{
+                        observation._embedded.observations.forEach(newObs=>{
                             if (!listObservations.observations.some(o => o.idData === newObs.idData)) {
                                 listObservations.observations.push(newObs);
                             } else {
@@ -595,8 +603,8 @@ async function updateObsFromStorageIds (pastIds) {
                 await renderObs();
             }
         }
-        if (listObservations.totLines>listObservations.observations.length) {
-            console.log("Something wrong happened, expected "+listObservations.observations.length+" but got "+listObservations.totLines+" observations?");
+        if (totalElements>listObservations.observations.length) {
+            console.log("Something wrong happened, expected "+listObservations.observations.length+" but got "+totalElements+" observations?");
             // error?
             // activate load all button ?
             activateBtn("loadAll");
@@ -671,10 +679,26 @@ function renderObs () {
         }
 
         let html = "";
+
+        // let groupeSimpleSvgName='';
+        // let groupeSimpleLabel='';
+        // TODO load et const Array groupes simple/GP ?
+        const groupesSimplesUnicode = new Map();
+        groupesSimplesUnicode.set(111,"&#128012;");
+        groupesSimplesUnicode.set(148,"&#128038;");
+        groupesSimplesUnicode.set(154,"&#129418;");
+        groupesSimplesUnicode.set(158,"&#128031;");
+        groupesSimplesUnicode.set(501,"&#127812;");
+        groupesSimplesUnicode.set(502,"&#129408;");
+        groupesSimplesUnicode.set(504,"&#129419;");
+        groupesSimplesUnicode.set(505,"&#127807;");
+        groupesSimplesUnicode.set(506,"&#128013;");
+        groupesSimplesUnicode.set(24222202,"&#8230;");
+
         // no column, all in blocks
         sorted.forEach(obs => {
-            let title = obs.nomComplet;
-            if (title==="") {
+            let title = obs.identification.nomComplet;
+            if (title==null) {
                 title="-";
             }
             const progress = buildProgress(obs.validation.idStatus);
@@ -685,21 +709,6 @@ function renderObs () {
             if (obs.dateModif!=="") {
                 modificationDateTime = new Date(obs.dateModif).toLocaleDateString("fr-FR") +" à "+ new Date(obs.dateModif).toLocaleTimeString("fr-FR");
             }
-
-            // let groupeSimpleSvgName='';
-            // let groupeSimpleLabel='';
-            // TODO load et const Array groupes simple/GP ?
-            const groupesSimplesUnicode = new Map();
-            groupesSimplesUnicode.set("111","&#128012;");
-            groupesSimplesUnicode.set("148","&#128038;");
-            groupesSimplesUnicode.set("154","&#129418;");
-            groupesSimplesUnicode.set("158","&#128031;");
-            groupesSimplesUnicode.set("501","&#127812;");
-            groupesSimplesUnicode.set("502","&#129408;");
-            groupesSimplesUnicode.set("504","&#129419;");
-            groupesSimplesUnicode.set("505","&#127807;");
-            groupesSimplesUnicode.set("506","&#128013;");
-            groupesSimplesUnicode.set("24222202","&#8230;");
 
             let quest = "";
             let questStatus = "No";
@@ -713,7 +722,7 @@ function renderObs () {
             // only displaying if all 3 filter checkboxes are checked!
             let display = false;
 
-            if (document.getElementById(obs.groupSimple).checked
+            if (document.getElementById(obs.identification.groupSimple.cdGroupSimple).checked
               && (isValidEmpty || document.getElementById(obs.validation.idStatus).checked)
               && document.getElementById(questStatus).checked) {
                 display = true;
@@ -746,21 +755,33 @@ function renderObs () {
                 validLabel=obs.validation.lbStatus;
             }
 
-            const htmlSegment = `<div id="${obs.idData}" class="obs status${validStatus} go${obs.groupSimple} quests${questStatus}" ${filtered}>
+            // TODO elsewhere ?
+            obs.photos.forEach(photo => {
+                if (photo.cdQualification!==0) {
+                    console.log("Photo for obs id: "+obs.idData+" has qualification: "+photo.lbQualification+" !");
+                }
+            });
+
+            let commonName="N/A";
+            if (obs.identification!=null&&obs.identification.nomVern!=null) {
+                commonName=obs.identification.nomVern;
+            }
+
+            const htmlSegment = `<div id="${obs.idData}" class="obs status${validStatus} go${obs.identification.groupSimple.cdGroupSimple} quests${questStatus}" ${filtered}>
                               <img src="${obs.photos[0].thumbnailFileUri}" >
-                              <div class="score">${obs.scoreTotal} pts</div>
-                              <div title="${obs.nomCommuns}" class="details">
+                              <div class="score">${obs.score} pts</div>
+                              <div title="${commonName}" class="details">
                                 <h2>${title} </h2>
                                 <p>Observation datée du ${creationDate} à ${creationTime}</p>
                                 <p>Dernière modification : ${modificationDateTime}</p>
-                                <p>${obs.region}</p>
+                                <p>${obs.location.region.name}</p>
                               </div>
                               <div title="${validLabel}" class="progress">
                                 ${progress}
                               </div>
 
-                              <div class="taxon" title="${obs.lbGroupSimple}">
-                                <span style="font-size: 30px;">${groupesSimplesUnicode.get(obs.groupSimple)}</span>
+                              <div class="taxon" title="${obs.identification.groupSimple.lbGroupSimple}">
+                                <span style="font-size: 30px;">${groupesSimplesUnicode.get(obs.identification.groupSimple.cdGroupSimple)}</span>
                               </div>
                               ${quest}
                           </div>`;
@@ -794,12 +815,12 @@ export async function changeContributor () {
         console.log("Will attempt to load data for contributor "+userId);
         if (USER_ID!=null &&USER_ID!==userId) {
             // testing if exists...
-            const contributor = await Utils.callAndWaitForJsonAnswer(inpnUrlBase+"contributor/"+userId, TIMEOUT);
+            const contributor = await Utils.callAndWaitForJsonAnswer(inpnUrlBase+"users/"+userId, TIMEOUT);
             if (contributor==null) {
                 console.log("This profile doesn't seem to exist... "+userId);
                 Utils.addNotification("","Echec","Erreur lors du chargement de l'utilisateur&middot;trice "+userId+" !");
                 if (currentContributor!=null) {
-                    document.getElementById("contributorId").value=currentContributor.idUtilisateur;
+                    document.getElementById("contributorId").value=currentContributor.id;
                 }
             } else {
                 // ok to change...
@@ -905,7 +926,7 @@ async function loadRightAmountMissingObs (diff) {
     // load the right amount needed!
     const paginStart=1;
 
-    const obsUrlDiff=inpnUrlBase+"data?paginStart="+paginStart+"&paginEnd="+diff+"&idUtilisateur="+USER_ID;
+    const obsUrlDiff=inpnUrlBase+"data/validation?page="+paginStart+"&size="+diff+"&sort=-datePublished&userIds="+USER_ID;
     console.log("Diff : loading obs from "+obsUrlDiff);
 
     if (await getAndAddAllObservations(obsUrlDiff)) {
@@ -945,11 +966,14 @@ export async function updateObservations () {
     console.log("Called "+callCpt+" times the update for non validated observations, made "+updatedCpt+" changes to current list");
 
     // One call to get a refreshed totLines - if matching, we have all. If not, need to loadLoop until done...
-    const urlLatestObservation=inpnUrlBase+"data?paginStart=1&paginEnd=1&idUtilisateur="+USER_ID;
-    const observation = await Utils.callAndWaitForJsonAnswer(urlLatestObservation, TIMEOUT);
+    const urlLatestObservation=inpnUrlBase+"data/validation?page=1&size=1&sort=-datePublished&userIds="+USER_ID;
+
+    const embeddedObservations = await Utils.callAndWaitForJsonAnswer(urlLatestObservation, TIMEOUT);
+    const observation = embeddedObservations._embedded;
     if (observation!=null) {
         latestObs = observation;
-        const diff = latestObs.totLines-listObservations.totLines;
+        // TODO FIX other totalElements? Where from?
+        const diff = totalElements-listObservations.totLines;
         console.log("latestObs up to date. "+diff+" new obs to load");
         if (diff>0) {
             newLoadedObsCpt = await loadRightAmountMissingObs(diff);
