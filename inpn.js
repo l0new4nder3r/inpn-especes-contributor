@@ -704,7 +704,7 @@ function renderObs () {
             let quest = "";
             let questStatus = "No";
             if (obs.questData!=null && obs.questData.idCa!=null) {
-                quest = "<div class=\"quest\" title=\"Soumise dans le cadre d'une quête\">🎯</div>";
+                quest = "<span class=\"quest\" title=\"Soumise dans le cadre d'une quête\">🎯</span>";
                 questStatus = "Yes";
             }
 
@@ -748,12 +748,11 @@ function renderObs () {
 
             let perfect="";
             if (hasPerfectPic(obs.photos)) {
-                perfect="<div class=\"perfect\">✨</div>";
+                perfect="<span title=\"Contient au moins une photo de qualité parfaite\" class=\"perfect\">✨</div>";
             }
 
             const htmlSegment = `<div id="${obs.idData}" class="obs status${validStatus} go${obs.groupSimple} quests${questStatus}" ${filtered}>
                               <img src="${obs.photos[0].thumbnailFileUri}" >
-                              ${perfect}
                               <div class="score">${obs.scoreTotal} pts</div>
                               <div title="${obs.nomCommuns}" class="details">
                                 <h2>${title} </h2>
@@ -768,7 +767,10 @@ function renderObs () {
                               <div class="taxon" title="${obs.lbGroupSimple}">
                                 <span style="font-size: 30px;">${groupesSimplesUnicode.get(obs.groupSimple)}</span>
                               </div>
-                              ${quest}
+                              <div style="display: inline;">
+                                ${perfect}
+                                ${quest}
+                              </div>
                           </div>`;
             html += htmlSegment;
         });
