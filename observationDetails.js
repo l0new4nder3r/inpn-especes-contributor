@@ -260,14 +260,14 @@ function buildInfos (chosenObs) {
     }
 
     let correctedName = "";
-    if (chosenObs.isCorrected==="true" && chosenObs.identification.nomCompletNonHtml!=="") {
+    if (chosenObs.isCorrected===true && chosenObs.identification.nomCompletNonHtml!=="") {
         correctedName=`<a class="corrected" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.identification.nomCompletNonHtml}" target="_blank">
 					${chosenObs.identification.nomCompletNonHtml}</a>`;
     }
 
     let statusComment="";
-    if (chosenObs.validation!=null && chosenObs.validation.StatusComment!=null) {
-        statusComment=`<div class="statusComment">${chosenObs.validation.StatusComment}</div>`;
+    if (chosenObs.validation!=null && chosenObs.validation.statusComment!=null) {
+        statusComment=`<div class="statusComment">${chosenObs.validation.statusComment}</div>`;
     }
 
     const creationDate = new Date(chosenObs.dateCrea).toLocaleString();
