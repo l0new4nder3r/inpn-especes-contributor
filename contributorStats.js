@@ -1,6 +1,6 @@
 /* Everything about displaying the stats of a selected contributor */
 
-import { USER_ID, TIMEOUT, latestObs, listObservations, currentContributor, blurBackground, unblurBackground, inpnUrlBase} from "./inpn.js";
+import { USER_ID, TIMEOUT, latestObs, listObservations, currentContributor, blurBackground, unblurBackground, inpnUrlBase, totalElements} from "./inpn.js";
 import { callAndWaitForJsonAnswer } from "./utils.js";
 
 /* taken from https://www.chartjs.org/docs/master/samples/utils.html */
@@ -50,12 +50,12 @@ async function getRankInfo (urlRank) {
     if (rankInfo==null) {
         alert("Erreur lors du chargement du nombre de personnes. Veuillez réessayer ultérieurement");
     }
-    contributorsTotal = rankInfo.totLines;
+    contributorsTotal = rankInfo.page.totalElements;
 }
 
 async function showStats () {
 
-    if (USER_ID!=null && latestObs!=null && listObservations != null && currentContributor!=null) {
+    if (USER_ID!=null && latestObs!=null && listObservations != null && currentContributor!=null && totalElements!= null) {
         // make some content for "stats" placeholder
         const stats = document.querySelector(".stats");
 
@@ -81,7 +81,7 @@ async function showStats () {
         statsleft.innerHTML ="<div class=\"statsIntro\"></div>";
 
         // tout est chargé? si non : avertissement
-        const isAllLoaded = listObservations.observations.length===latestObs.totLines;
+        const isAllLoaded = listObservations.observations.length===totalElements;
         if (!isAllLoaded) {
             document.querySelector(".statsIntro").innerHTML += `<p>Attention, toutes les observations de cette personne n'ont pas été chargées.</p>
 							<p>Certaines statistiques pourraient perdre de leur pertinence!</p>`;
@@ -89,22 +89,27 @@ async function showStats () {
 
         // score moyen, min ,max
         let averageGlobal=0;
-        if (latestObs.totLines!==0) {
-            averageGlobal = (currentContributor.ScoreTotal/latestObs.totLines).toFixed(0);
+        if (totalElements!==0) {
+            averageGlobal = (currentContributor._embedded.scores.totalPoints/totalElements).toFixed(0);
         }
-        let min = listObservations.observations[0].scoreTotal;
+        let min = listObservations.observations[0].score!=null?listObservations.observations[0].score:0;
         let max = 0;
         let sum = 0;
         let validated = 0;
         listObservations.observations.forEach(obs=>{
-            if (obs.scoreTotal<min) {
-                min=obs.scoreTotal;
+            if (obs.score!=null) {
+                if (obs.score < min) {
+                    min=obs.score;
+                }
+            } else {
+                min=0;
             }
-            if (obs.scoreTotal>max) {
-                max=obs.scoreTotal;
+
+            if (obs.score>max) {
+                max=obs.score;
             }
-            sum +=obs.scoreTotal;
-            if (obs.isValidated==="true") {
+            sum +=obs.score;
+            if (obs.isValidated===true) {
                 validated++;
             }
         });
@@ -123,7 +128,7 @@ async function showStats () {
             asterisk="<sup>*</sup>";
             globalAverageScore=`<p>Score moyen (global) : ${averageGlobal} points</p>`;
         }
-        leftStatsContents.innerHTML += `<p>Observations soumises : ${listObservations.totLines}</p>
+        leftStatsContents.innerHTML += `<p>Observations soumises : ${totalElements}</p>
                         <p>Observations validées : ${validated}</p>
 												<p>Score minimum${asterisk} : ${min} points</p>
 												<p>Score moyen${asterisk} : ${averageLoaded} points</p>
@@ -132,21 +137,22 @@ async function showStats () {
 
         /* rang contributeur  */
         if (contributorsTotal==null) {
-            const urlRank=inpnUrlBase+"rank?paginStart=1&paginEnd=1";
+            // https://inpn.mnhn.fr/inpn-especes/scores?page=0&size=1
+            const urlRank=inpnUrlBase+"scores?page=0&size=1";
             console.log("loading rank info from: "+urlRank);
             await getRankInfo(urlRank);
         }
 
-        leftStatsContents.innerHTML+=`<p>Rang : ${currentContributor.rang}<sup>e</sup> sur ${contributorsTotal} contributeurs&middot;trices</p>`;
+        leftStatsContents.innerHTML+=`<p>Rang : ${currentContributor._embedded.scores.rank}<sup>e</sup> sur ${contributorsTotal} contributeurs&middot;trices</p>`;
 
         /* nombre validés mais corrigés */
         let corrected = 0;
         let correctlyIdentified = 0;
         listObservations.observations.forEach(obs=>{
-            if (obs.isCorrected==="true") {
+            if (obs.isCorrected===true) {
                 corrected++;
-            } else if (obs.isValidated==="true") {
-                if (obs.taxonOrigin!=null && obs.taxonOrigin.cdNomOrigin!=null && obs.taxonOrigin.cdNomOrigin!=="") {
+            } else if (obs.isValidated===true) {
+                if (obs.taxonOrigin!=null && obs.taxonOrigin.cdNom!=null && obs.taxonOrigin.cdNom!=="") {
                     correctlyIdentified++;
                 }
             }
@@ -175,7 +181,7 @@ async function showStats () {
 
         // link to official profile
         leftStatsContents.innerHTML+=`<div class="linkOfficial">
-                                        <a href="https://determinobs.fr/#/observateurs/${currentContributor.idUtilisateur}" target="_blank">
+                                        <a href="https://determinobs.fr/#/observateurs/${currentContributor.id}" target="_blank">
                                           <img title="déterminobs" src="https://determinobs.fr/favicon.ico" style="width: 1em;">
                                           <span style="margin-left: 5px;">Consulter le profil de ${currentContributor.pseudo} sur Déterminobs</span>
                                         </a>
@@ -325,13 +331,13 @@ function buildScoresGraph () {
 
     listObservations.observations.forEach(obs=>{
         if (obs.validation.idStatus===5) {
-            if (obs.scoreTotal>5000) {
+            if (obs.score>5000) {
                 count5000AndMore++;
-            } else if (obs.scoreTotal>2000) {
+            } else if (obs.score>2000) {
                 count2000to5000++;
-            } else if (obs.scoreTotal>1000) {
+            } else if (obs.score>1000) {
                 count1000to2000++;
-            } else if (obs.scoreTotal>100) {
+            } else if (obs.score>100) {
                 count100to1000++;
             } else {
                 count0to100++;
@@ -458,11 +464,11 @@ function buildPropositionsGraph () {
     listObservations.observations.forEach(obs=>{
         const date = (new Date(obs.dateCrea)).toLocaleString("default", { month: "long" , year: "numeric"});
         observationsPerMonthMap.set(date,observationsPerMonthMap.get(date)+1);
-        if (obs.isCorrected==="true") {
+        if (obs.isCorrected===true) {
             propositionsPerMonthMap.set(date,propositionsPerMonthMap.get(date)+1);
             correctionsPerMonthMap.set(date,correctionsPerMonthMap.get(date)+1);
-        } else if (obs.isValidated==="true") {
-            if (obs.taxonOrigin!=null && obs.taxonOrigin.cdNomOrigin!=null && obs.taxonOrigin.cdNomOrigin!=="") {
+        } else if (obs.isValidated===true) {
+            if (obs.taxonOrigin!=null && obs.taxonOrigin.cdNom!=null && obs.taxonOrigin.cdNom!=="") {
                 propositionsPerMonthMap.set(date,propositionsPerMonthMap.get(date)+1);
                 validationsPerMonthMap.set(date,validationsPerMonthMap.get(date)+1);
             }
@@ -576,11 +582,11 @@ function buildRegionsGraph () {
     const regionLabels = new Map();
 
     listObservations.observations.forEach(obs=>{
-        if (regionsCount.get(obs.numRegion)==null) {
-            regionsCount.set(obs.numRegion,1);
-            regionLabels.set(obs.numRegion,obs.region);
+        if (regionsCount.get(obs.location.region.code)==null) {
+            regionsCount.set(obs.location.region.code,1);
+            regionLabels.set(obs.location.region.code,obs.location.region.name);
         } else {
-            regionsCount.set(obs.numRegion,regionsCount.get(obs.numRegion)+1);
+            regionsCount.set(obs.location.region.code,regionsCount.get(obs.location.region.code)+1);
         }
     });
 
@@ -675,11 +681,11 @@ function	buildGroupsGraph () {
     const groupSimpleLabels = new Map();
 
     listObservations.observations.forEach(obs=>{
-        if (groupSimpleCount.get(obs.groupSimple)==null) {
-            groupSimpleCount.set(obs.groupSimple,1);
-            groupSimpleLabels.set(obs.groupSimple,obs.lbGroupSimple);
+        if (groupSimpleCount.get(obs.identification.groupSimple.cdGroupSimple)==null) {
+            groupSimpleCount.set(obs.identification.groupSimple.cdGroupSimple,1);
+            groupSimpleLabels.set(obs.identification.groupSimple.cdGroupSimple,obs.identification.groupSimple.lbGroupSimple);
         } else {
-            groupSimpleCount.set(obs.groupSimple,groupSimpleCount.get(obs.groupSimple)+1);
+            groupSimpleCount.set(obs.identification.groupSimple.cdGroupSimple,groupSimpleCount.get(obs.identification.groupSimple.cdGroupSimple)+1);
         }
     });
 

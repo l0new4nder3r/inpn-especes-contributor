@@ -36,8 +36,8 @@ async function loadAll () {
             displayObservation(obs);
 
             // get associated user
-            const userId = obs.idUtilisateur;
-            const urlContributor=inpnUrlBase+"users/"+userId;
+            const userId = obs.utilisateur.userId;
+            const urlContributor=inpnUrlBase+"users/"+userId+"?embed=SCORES";
             const contributor = await Utils.callAndWaitForJsonAnswer(urlContributor, TIMEOUT);
             addUserDetails(contributor);
         } else {
@@ -79,22 +79,22 @@ async function addUserDetails (contributor) {
     const userDiv = document.querySelector(".user");
 
     if (contributor!=null) {
-        const userInTop = `<div title="${contributor.prenom} ${contributor.nom}" class="pseudo singlePseudo">${contributor.pseudo}</div>`;
+        const userInTop = `<div title="${contributor.firstName} ${contributor.lastName}" class="pseudo singlePseudo">${contributor.pseudo}</div>`;
         userDiv.insertAdjacentHTML("beforeend", userInTop);
 
-        const userScore = `<div class="totalScore singleScore">${contributor.ScoreTotal} points</div>`;
+        const userScore = `<div class="totalScore singleScore">${contributor._embedded.scores.totalPoints} points</div>`;
         userDiv.insertAdjacentHTML("beforeend", userScore);
 
         // link to inpn page, on user picture
         const userPicture = `<img id="profilePicSingle" alt="contributor profile picture" src="${contributor.avatar}">`;
-        const userLink = `<a href="/${Utils.getUrlPath()}/index.html?userId=${contributor.idUtilisateur}" target="_blank" title="Consulter toutes les observations de ${contributor.pseudo} (nouvelle page)">${userPicture}</a>`;
+        const userLink = `<a href="/${Utils.getUrlPath()}/index.html?userId=${contributor.id}" target="_blank" title="Consulter toutes les observations de ${contributor.pseudo} (nouvelle page)">${userPicture}</a>`;
         userDiv.insertAdjacentHTML("beforeend", userLink);
         const profPic = document.getElementById("profilePicSingle");
         profPic.style.width=profPic.clientHeight+"px";
 
         // adding number of validated obs as a tooltip for score
         // validated obs API call
-        const urlValidatedObservations="https://inpn.mnhn.fr/inpn-especes/data/validation?page=0&size=1&filtreStatutValidation=5&userIds="+contributor.idUtilisateur+"&sort=-datePublished";
+        const urlValidatedObservations="https://inpn.mnhn.fr/inpn-especes/data/validation?page=0&size=1&filtreStatutValidation=5&userIds="+contributor.id+"&sort=-datePublished";
         const response = await Utils.callAndWaitForJsonAnswer(urlValidatedObservations, TIMEOUT);
         let obsValidatedCount;
         if (response!=null && response.page!=null && response.page.totalElements!=null) {
@@ -125,16 +125,13 @@ async function getValidRandomObservationId () {
 
 async function exists (observationId) {
     const getOneUrl=inpnUrlBase+"data/"+observationId;
-    const randomObservation = await Utils.callAndWaitForJsonAnswer(getOneUrl, TIMEOUT);
-    // console.log(randomObservation);
     let exists=false;
-    if (randomObservation!==undefined) {
-        if (randomObservation.status!=null && randomObservation.status===404) {
-            exists=false;
-        } else if (randomObservation.status==null) {
+    await Utils.urlExists(getOneUrl, function (nestedExists) {
+        if (nestedExists) {
+        // it exists, do something
             exists=true;
         }
-    }
+    });
     return exists;
 }
 

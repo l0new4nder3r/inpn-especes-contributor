@@ -7,6 +7,28 @@ let notificationId = 0;
 
 /***
 **
+**  Simple utility functions
+**
+***/
+
+export function valueOrZero (numericValue) {
+    if (numericValue==null) {
+        return 0;
+    } else {
+        return numericValue;
+    }
+}
+
+export function valueOrNA (stringValue) {
+    if (stringValue==null) {
+        return "N/A";
+    } else {
+        return stringValue;
+    }
+}
+
+/***
+**
 **	Event listeners
 **
 ****/
@@ -181,6 +203,15 @@ export function getUrlPath () {
         urlPath="inpn-especes-contributor";
     }
     return urlPath;
+}
+
+export async function urlExists (url, callback) {
+    // using head method will give us 403 error
+    await fetch(url, { method: "get" })
+        .then(function (status) {
+            // console.log(status);
+            callback(status.ok);
+        });
 }
 
 export function isMobileDevice () {

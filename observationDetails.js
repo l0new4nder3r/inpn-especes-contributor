@@ -1,6 +1,6 @@
 /* Everything about displaying the details of a selected observation */
 import { listObservations, TIMEOUT, buildProgress, blurBackground, unblurBackground, inpnUrlBase } from "./inpn.js";
-import { callAndWaitForJsonAnswer } from "./utils.js";
+import * as Utils from "./utils.js";
 
 /* eslint no-console: 0 */
 
@@ -111,7 +111,7 @@ export async function addQuestData (chosenObs) {
     if (chosenObs.questData!=null && chosenObs.questData.idCa!=null) {
         // ??? quest = `<div class="quest" title="Soumise dans le cadre d'une quête">🎯</div>`;
         const questUrl = `https://inpn.mnhn.fr/inpn-especes/quetes/forms/${chosenObs.questData.idCa}`;
-        const questDetails = await callAndWaitForJsonAnswer(questUrl, TIMEOUT);
+        const questDetails = await Utils.callAndWaitForJsonAnswer(questUrl, TIMEOUT);
         if (questDetails==null || questDetails.libelle==null) {
             console.error("Erreur lors de l'appel des détails de quête");
         } else {
@@ -125,7 +125,7 @@ export async function addRareSpeciesInfo (chosenObs) {
     // espèce ayant moins de 5000 données sur l'INPN https://openobs.mnhn.fr/api/occurrences/stats/taxon/98651
     if (chosenObs.identification.cdRef!=null&&chosenObs.identification.cdRef!=="") {
         const occurrencesUrl = `https://openobs.mnhn.fr/api/occurrences/stats/taxon/${chosenObs.identification.cdRef}`;
-        const occurrences = await callAndWaitForJsonAnswer(occurrencesUrl, TIMEOUT);
+        const occurrences = await Utils.callAndWaitForJsonAnswer(occurrencesUrl, TIMEOUT);
         if (occurrences==null || occurrences.occurrenceCount==null) {
             console.error("Erreur lors de l'appel du comptage des observations");
         } else {
@@ -138,9 +138,8 @@ export async function addRareSpeciesInfo (chosenObs) {
 }
 
 export async function addScoreDetails (idData) {
-    // TODO fix me when new API found !!!
-    const scoreDetailsUrl = `${inpnUrlBase}score/iddata/${idData}`;
-    const scoreDetails = await callAndWaitForJsonAnswer(scoreDetailsUrl, TIMEOUT);
+    const scoreDetailsUrl = `${inpnUrlBase}scores/observations/${idData}`;
+    const scoreDetails = await Utils.callAndWaitForJsonAnswer(scoreDetailsUrl, TIMEOUT);
     if (scoreDetails==null) {
         console.warn("L'observation id "+idData+" n'a pas (encore?) de détail de score");
     }
@@ -148,10 +147,10 @@ export async function addScoreDetails (idData) {
     // inserting score details
     let scoresHtmlContents="";
     if (scoreDetails!=null) {
-        scoreDetails.scoresHistorique.reverse();
-        scoreDetails.scoresHistorique.forEach(score=>{
-            const dateCrea=new Date(score.dateCrea).toLocaleString();
-            scoresHtmlContents+=`<div title="${dateCrea}"><div style="font-style:italic;">${score.causes} : ${score.score} points</div></div>`;
+        scoreDetails.scores.reverse();
+        scoreDetails.scores.forEach(score=>{
+            const dateCrea=new Date(score.dateCreated).toLocaleString();
+            scoresHtmlContents+=`<div title="${dateCrea}"><div style="font-style:italic;">${score.cause} : ${score.points} points</div></div>`;
         });
     }
     document.querySelector(".scoreDetails").innerHTML=scoresHtmlContents;
@@ -160,7 +159,7 @@ export async function addScoreDetails (idData) {
 export async function addProtectionStatus (referenceCode) {
     if (referenceCode!=null) {
         const protectionStatusesUrl = `https://odata-inpn.mnhn.fr/taxa/${referenceCode}`;
-        const protectionStatuses = await callAndWaitForJsonAnswer(protectionStatusesUrl, TIMEOUT);
+        const protectionStatuses = await Utils.callAndWaitForJsonAnswer(protectionStatusesUrl, TIMEOUT);
         if (protectionStatuses==null) {
             console.error("Erreur lors de l'appel aux statuts de protection");
         } else {
@@ -168,7 +167,7 @@ export async function addProtectionStatus (referenceCode) {
                 if (protectionStatuses.statuses.includes("RED_LIST")) {
                     let redListToolTip="";
                     const redListDetailsUrl = `https://odata-inpn.mnhn.fr/taxa/redLists/entries?taxrefId=${referenceCode}&scopes=NATIONAL&embed=RED_LIST`;
-                    const redListDetails = await callAndWaitForJsonAnswer(redListDetailsUrl, TIMEOUT);
+                    const redListDetails = await Utils.callAndWaitForJsonAnswer(redListDetailsUrl, TIMEOUT);
                     if (redListDetails==null) {
                         console.error("Erreur lors de l'appel aux détails de liste rouge");
                     } else {
@@ -226,7 +225,7 @@ function buildInfos (chosenObs) {
 
     let titleLink = "";
     let nomComplet = chosenObs.identification.nomCompletNonHtml;
-    if (nomComplet==="") {
+    if (nomComplet==null || nomComplet==="") {
         nomComplet="-";
         titleLink=`<h3>${nomComplet}</h3>`;
     } else {
@@ -268,13 +267,13 @@ function buildInfos (chosenObs) {
 							<div class="protectionStatus"></div>
 							${statusComment}
 							<p>${chosenObs.identification.groupSimple.lbGroupSimple}</p>
-							<p style="position: relative;width: 90%;;">${chosenObs.identification.nomVern}</p>
+							<p style="position: relative;width: 90%;;">${Utils.valueOrNA(chosenObs.identification.nomVern)}</p>
 							<p id="rare"></p>
 							<div id="map"></div>
 							<p style="font-style:italic;">${chosenObs.location.commune.name} (${chosenObs.location.departement.code}), le ${creationDate}</p>
 							${commentaire}
 							<p id="quest"></p>
-							<p>${chosenObs.score} points</p>
+							<p>${Utils.valueOrZero(chosenObs.score)} points</p>
 							<div class="scoreDetails"></div>`;
 
     // adding the progress part again

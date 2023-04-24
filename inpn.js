@@ -10,8 +10,13 @@ export let USER_ID;
 
 // latest obs
 export let latestObs;
-// total number of obs from latestObs call
+// total number of obs from user info (observations + quest observations)
 export let totalElements;
+// standard observation amount
+export let opportunisticTotalElements;
+// quest observation amount
+export let questTotalElements;
+
 // global list of observations to gather
 export let listObservations;
 // contributor info
@@ -35,6 +40,18 @@ let allDownloaded = false;
 
 const LOAD_OBS = "⇩ Charger";
 const UPDATE_OBS = "↺ Mettre à jour";
+
+const groupesSimplesUnicode = new Map();
+groupesSimplesUnicode.set(111,"&#128012;");
+groupesSimplesUnicode.set(148,"&#128038;");
+groupesSimplesUnicode.set(154,"&#129418;");
+groupesSimplesUnicode.set(158,"&#128031;");
+groupesSimplesUnicode.set(501,"&#127812;");
+groupesSimplesUnicode.set(502,"&#129408;");
+groupesSimplesUnicode.set(504,"&#129419;");
+groupesSimplesUnicode.set(505,"&#127807;");
+groupesSimplesUnicode.set(506,"&#128013;");
+groupesSimplesUnicode.set(24222202,"&#8230;");
 
 /***
 **
@@ -74,7 +91,9 @@ async function loadAll () {
         Utils.addNotification("","Echec","Erreur lors du chargement de l'utilisateur&middot;trice "+USER_ID);
     }
 
+
     await loadLatestObs();
+
     if (latestObs!=null) {
         // console.log("latestObs ok");
         if (totalElements>0 && totalElements>listObservations.observations.length) {
@@ -88,29 +107,32 @@ async function loadAll () {
         Utils.addNotification("","Echec","Erreur lors du chargement de la dernière observation");
     }
 
-    // WIP
-    const userData = Utils.getFromLocalStorage(currentContributor.id);
-    let pastIds;
-    if (userData!=null) {
-        pastIds = userData.ids;
-    }
+    // TODO rework errors sometimes? 995 ?
+    // Even better, load ALL at once (fast!!) or 100 by 100 and merge by idData?
+    //const userData = Utils.getFromLocalStorage(currentContributor.id);
+    // let pastIds;
+    // if (userData!=null) {
+    //     pastIds = userData.ids;
+    // }
     // let pastIds = getFromLocalStorage('ids');
-    if (pastIds!=null) {
-        Utils.addNotification("info","Information",pastIds.length+" observations déjà connues sur ce navigateur sont en cours de téléchargement");
-        startProgressAnimation();
-        await updateObsFromStorageIds(pastIds);
-        stopProgressAnimation();
-        Utils.addNotification("success","Succès",listObservations.observations.length+" observations rechargées");
-    } else {
-        await loadSomeMore();
-        // console.log("more ok");
-        activateBtn("loadAll");
-        document.getElementById("loadAll").title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
-        document.getElementById("loadAll").innerHTML = LOAD_OBS;
-    }
+    // if (pastIds!=null) {
+    //     Utils.addNotification("info","Information",pastIds.length+" observations déjà connues sur ce navigateur sont en cours de téléchargement");
+    //     startProgressAnimation();
+    //     await updateObsFromStorageIds(pastIds);
+    //     stopProgressAnimation();
+    //     Utils.addNotification("success","Succès",listObservations.observations.length+" observations rechargées");
+    // } else {
+    await loadSomeMore();
+    // console.log("more ok");
+    activateBtn("loadAll");
+    document.getElementById("loadAll").title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
+    document.getElementById("loadAll").innerHTML = LOAD_OBS;
+    // }
 
     createObserver();
     // console.log("observer ok");
+    await loadQuests();
+
 }
 
 async function loadUserId () {
@@ -247,6 +269,8 @@ async function loadContributor () {
         if (currentContributor==null) {
             alert("Erreur lors du chargement pour l'ID "+USER_ID);
         } else {
+            totalElements=currentContributor._embedded.scores.observationCount;
+            console.log("Nombre total d'observations pour l'utilisateur : "+totalElements);
             let html = "";
             const htmlSegment = `<img id="profilePic" alt="contributor profile picture" src="${currentContributor.avatar}">
                <div title="${currentContributor._embedded.scores.status}" class="pseudo">${currentContributor.pseudo}</div>
@@ -278,22 +302,75 @@ async function loadContributor () {
     await renderContributor();
 }
 
+/***
+**
+**  INPN quests data loading + rendering
+**  Will load the general list of quests first
+**  then the observations for each of them for the current user
+**
+****/
+
+async function loadQuests () {
+    // let's get the quest list
+    // https://inpn.mnhn.fr/inpn-especes/quetes/users/20784?size=50&page=0
+    const urlQuestsByUser=inpnUrlBase+"quetes/users/"+USER_ID+"?size=50&page=0";
+    console.log("loading quests for current user from: "+urlQuestsByUser);
+    let loadedQuestData=0;
+
+    async function loadQuestData (id) {
+        // TODO make it loop and load all across pages!
+        // https://inpn.mnhn.fr/inpn-especes/data/quetes/36854?page=0&size=24&sort=-dateValidated&userIds=20784
+        const urlQuestDataByUserAndQuestId="https://inpn.mnhn.fr/inpn-especes/data/quetes/"+id+"?page=0&size=100&sort=-dateValidated&userIds="+USER_ID;
+        const questData = await Utils.callAndWaitForJsonAnswer(urlQuestDataByUserAndQuestId, TIMEOUT);
+        if (questData!=null) {
+            const currentQuestObservations = questData._embedded.observations;
+            currentQuestObservations.forEach(questObs => {
+                pushToList(questObs);
+                loadedQuestData++;
+            });
+        }
+    }
+    const questsByUser = await Utils.callAndWaitForJsonAnswer(urlQuestsByUser, TIMEOUT);
+    if (questsByUser!= null) {
+
+        for (const quest of questsByUser._embedded.quests) {
+        // load the matching observations!
+            const id = quest.idCa;
+            await loadQuestData(id);
+        }
+    }
+    // questTotalElements
+    if (questTotalElements===loadedQuestData) {
+        console.log("All "+questTotalElements+" quest observations were loaded successfully");
+    } else {
+        console.error("On "+questTotalElements+" quest observations expected, "+loadedQuestData+" were loaded");
+    }
+    renderObs();
+    renderProgress();
+}
+
+
 async function loadLatestObs () {
     //url to load latest observation
-    const urlLatestObservation=inpnUrlBase+"data/validation?page=0&size=1&sort=-datePublished&userIds="+USER_ID;
+    const urlLatestObservation=inpnUrlBase+"data/validation?page=0&size=24&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
     console.log("loading latest obs from: "+urlLatestObservation);
 
     async function renderLatestObs () {
         const embeddedObservations = await Utils.callAndWaitForJsonAnswer(urlLatestObservation, TIMEOUT);
         const observations = embeddedObservations._embedded;
         if (observations!=null) {
-            index = 1;
+            index = 0;
             latestObs = observations;
             // console.log("latestObs is set!");
             console.log("latestObs is set!");
             console.log(latestObs);
             listObservations = observations;
-            totalElements=embeddedObservations.page.totalElements;
+            // TODO FIXME! not the right totalElements value
+            //totalElements=embeddedObservations.page.totalElements;
+            opportunisticTotalElements=embeddedObservations.page.totalElements;
+            console.log("Nombre d'observations opportunistes à charger "+opportunisticTotalElements);
+            questTotalElements=totalElements-opportunisticTotalElements;
+            console.log("Nombre d'observations de quêtes à charger "+questTotalElements);
             renderProgress();
         } else {
             alert("Erreur lors du chargement de la première observation. Veuillez réessayer ultérieurement");
@@ -325,26 +402,37 @@ function renderProgress () {
 }
 
 async function getAndAddAllObservations (url) {
+    let isLoaded=true;
     const observation = await Utils.callAndWaitForJsonAnswer(url, TIMEOUT);
     // add all
     if (observation==null) {
+        isLoaded=false;
         alert("Erreur lors du chargement des observations. Veuillez réessayer ultérieurement");
     } else {
         // preventing duplicates in observations by idData
         console.log(observation);
-        observation._embedded.observations.forEach(newObs=>{
-            if (!listObservations.observations.some(o => o.idData === newObs.idData)) {
-                listObservations.observations.push(newObs);
-                console.log("Added obs id "+newObs.idData+" to the list. Size is now "+listObservations.observations.length);
-            } else {
-                console.log("No need to add obs id "+newObs.idData+" as it was already present in list");
-            }
-        });
+        if (observation._embedded!=null) {
+            observation._embedded.observations.forEach(newObs=>{
+                pushToList(newObs);
+            });
+        } else {
+            console.error("End of the observations pages?");
+            isLoaded=false;
+        }
 
         // listObservations.observations.push(...observation.observations);
         renderProgress();
     }
-    return (observation!=null);
+    return isLoaded;
+}
+
+function pushToList (newObs) {
+    if (!listObservations.observations.some(o => o.idData === newObs.idData)) {
+        listObservations.observations.push(newObs);
+        console.log("Added obs id "+newObs.idData+" to the list. Size is now "+listObservations.observations.length);
+    } else {
+        console.log("No need to add obs id "+newObs.idData+" as it was already present in list");
+    }
 }
 
 export async function loopLoading () {
@@ -374,15 +462,16 @@ export async function loopLoading () {
                 startProgressAnimation();
 
                 // looping
-                for (index; index< totalElements; index=index+16) {
+                // TODO rework with new return values?
+                for (index; index< totalElements-questTotalElements; index=index+1) {
                     // could be stopped from elsewhere...
                     if (isLoopLoadingOn) {
-                        let paginEnd=index+16;
-                        if (paginEnd>totalElements) {
-                            paginEnd=totalElements;
-                        }
+                        // let paginEnd=index+16;
+                        // if (paginEnd>totalElements) {
+                        //     paginEnd=totalElements;
+                        // }
                         const paginStart = index+1;
-                        const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+16+"&sort=-datePublished&userIds="+USER_ID;
+                        const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+24+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
                         console.log("loop : loading obs from "+obsUrl);
 
                         if (await getAndAddAllObservations(obsUrl)) {
@@ -401,7 +490,8 @@ export async function loopLoading () {
                 // turn "load all" button back to normal
 
                 // if not finished
-                if (index< totalElements) {
+                if (listObservations.observations.length < totalElements-questTotalElements) {
+                // if (index< totalElements) {
                     buttonLoadAll.innerHTML = LOAD_OBS;
                     buttonLoadAll.title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
                 } else {
@@ -424,23 +514,23 @@ async function loadSomeMore () {
 
     if (latestObs!=null && !isMoreLoadingOn && !isLoopLoadingOn) {
 
-        if (listObservations.observations.length<totalElements && index<totalElements) {
+        if (listObservations.observations.length<opportunisticTotalElements) {
             isMoreLoadingOn=true;
             startProgressAnimation();
 
             const paginStart = index+1;
-            let paginEnd=index+16;
-            if (paginEnd>totalElements) {
-                paginEnd=totalElements;
-            }
-            const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+16+"&sort=-datePublished&userIds="+USER_ID;
+            // let paginEnd=index+16;
+            // if (paginEnd>opportunisticTotalElements) {
+            //     paginEnd=opportunisticTotalElements;
+            // }
+            const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+24+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
             console.log("loadMore : loading obs from "+obsUrl);
 
             if (await getAndAddAllObservations(obsUrl)) {
                 // rendering
                 await renderObs();
                 // incrementing for next call
-                index = index+16;
+                //index = index+1;
 
             } else {
                 // Error while loading
@@ -449,7 +539,7 @@ async function loadSomeMore () {
             stopProgressAnimation();
 
             // have we reached the end?
-            if (index< totalElements) {
+            if (listObservations.observations.length < opportunisticTotalElements) {
                 // do nothing
             } else {
                 allDownloaded=true;
@@ -481,11 +571,12 @@ function saveCurrentUserDataInStorage () {
             }
         });
         const userData = {
-            "ids": ids,
+            // "ids": ids,
             "lastModifDate": lastModifDate,
             "score": currentContributor.ScoreTotal
         };
-        console.log("Will attempt to save "+ids.length+" ids to localStorage");
+        // console.log("Will attempt to save "+ids.length+" ids to localStorage");
+        console.log("Saving user data to localStorage");
         Utils.putInLocalStorage(currentContributor.id,userData);
     }
 }
@@ -541,7 +632,7 @@ async function updateObsFromStorageIds (pastIds) {
 
             const paginEnd=cpt;
             const paginStart = cpt;
-            const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+1+"&sort=-datePublished&userIds="+USER_ID;
+            const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+1+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
             console.log("complete after storage ids : loading obs from "+obsUrl);
 
             const observation = await Utils.callAndWaitForJsonAnswer(obsUrl, TIMEOUT);
@@ -580,7 +671,7 @@ async function updateObsFromStorageIds (pastIds) {
 
                     const paginEnd=cptEnd;
                     const paginStart = cptEnd;
-                    const obsUrlEnd=inpnUrlBase+"data/validation?page="+paginStart+"&size="+1+"&sort=-datePublished&userIds="+USER_ID;
+                    const obsUrlEnd=inpnUrlBase+"data/validation?page="+paginStart+"&size="+1+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
                     console.log("complete END after storage ids : loading obs from "+obsUrlEnd);
 
                     const observation = await Utils.callAndWaitForJsonAnswer(obsUrlEnd, TIMEOUT);
@@ -680,21 +771,6 @@ function renderObs () {
 
         let html = "";
 
-        // let groupeSimpleSvgName='';
-        // let groupeSimpleLabel='';
-        // TODO load et const Array groupes simple/GP ?
-        const groupesSimplesUnicode = new Map();
-        groupesSimplesUnicode.set(111,"&#128012;");
-        groupesSimplesUnicode.set(148,"&#128038;");
-        groupesSimplesUnicode.set(154,"&#129418;");
-        groupesSimplesUnicode.set(158,"&#128031;");
-        groupesSimplesUnicode.set(501,"&#127812;");
-        groupesSimplesUnicode.set(502,"&#129408;");
-        groupesSimplesUnicode.set(504,"&#129419;");
-        groupesSimplesUnicode.set(505,"&#127807;");
-        groupesSimplesUnicode.set(506,"&#128013;");
-        groupesSimplesUnicode.set(24222202,"&#8230;");
-
         // no column, all in blocks
         sorted.forEach(obs => {
             let title = obs.identification.nomComplet;
@@ -756,11 +832,11 @@ function renderObs () {
             }
 
             // TODO elsewhere ?
-            obs.photos.forEach(photo => {
-                if (photo.cdQualification!==0) {
-                    console.log("Photo for obs id: "+obs.idData+" has qualification: "+photo.lbQualification+" !");
-                }
-            });
+            // obs.photos.forEach(photo => {
+            //     if (photo.cdQualification!==0) {
+            //         console.log("Photo for obs id: "+obs.idData+" has qualification: "+photo.lbQualification+" !");
+            //     }
+            // });
 
             let commonName="N/A";
             if (obs.identification!=null&&obs.identification.nomVern!=null) {
@@ -769,7 +845,7 @@ function renderObs () {
 
             const htmlSegment = `<div id="${obs.idData}" class="obs status${validStatus} go${obs.identification.groupSimple.cdGroupSimple} quests${questStatus}" ${filtered}>
                               <img src="${obs.photos[0].thumbnailFileUri}" >
-                              <div class="score">${obs.score} pts</div>
+                              <div class="score">${Utils.valueOrZero(obs.score)} pts</div>
                               <div title="${commonName}" class="details">
                                 <h2>${title} </h2>
                                 <p>Observation datée du ${creationDate} à ${creationTime}</p>
@@ -926,7 +1002,7 @@ async function loadRightAmountMissingObs (diff) {
     // load the right amount needed!
     const paginStart=1;
 
-    const obsUrlDiff=inpnUrlBase+"data/validation?page="+paginStart+"&size="+diff+"&sort=-datePublished&userIds="+USER_ID;
+    const obsUrlDiff=inpnUrlBase+"data/validation?page="+paginStart+"&size="+diff+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
     console.log("Diff : loading obs from "+obsUrlDiff);
 
     if (await getAndAddAllObservations(obsUrlDiff)) {
@@ -966,7 +1042,7 @@ export async function updateObservations () {
     console.log("Called "+callCpt+" times the update for non validated observations, made "+updatedCpt+" changes to current list");
 
     // One call to get a refreshed totLines - if matching, we have all. If not, need to loadLoop until done...
-    const urlLatestObservation=inpnUrlBase+"data/validation?page=1&size=1&sort=-datePublished&userIds="+USER_ID;
+    const urlLatestObservation=inpnUrlBase+"data/validation?page=1&size=1&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
 
     const embeddedObservations = await Utils.callAndWaitForJsonAnswer(urlLatestObservation, TIMEOUT);
     const observation = embeddedObservations._embedded;
