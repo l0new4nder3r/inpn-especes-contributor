@@ -16,6 +16,23 @@ conservationsStatuses.set("LC","Préoccupation mineure");
 conservationsStatuses.set("DD","Données insuffisantes");
 conservationsStatuses.set("NE","Non évalué");
 
+// For photos qualification - WIP retroengineering
+const qualificationLabels = new Map();
+qualificationLabels.set(0,"Pas de qualification");
+qualificationLabels.set(1,"Image de qualité parfaite");
+qualificationLabels.set(2,"");
+qualificationLabels.set(3,"");
+qualificationLabels.set(4,"");
+qualificationLabels.set(5,"");
+qualificationLabels.set(6,"Image inexploitable (sous/sur-exposée, floue, sujet trop petit, paysage, etc.)");
+qualificationLabels.set(7,"");
+qualificationLabels.set(8,"");
+qualificationLabels.set(9,"");
+qualificationLabels.set(10,"Manipulation d'espèce");
+qualificationLabels.set(11,"");
+qualificationLabels.set(12,"");
+qualificationLabels.set(13,"Individu mort, chassé ou pêché");
+
 export let slideIndex = 1;
 
 function findChosenObs (idData) {
@@ -317,11 +334,22 @@ function buildPhotos (chosenObs) {
         } else {
             htmlPhotoNumbers = `<div class="numbertext">${cpt} / ${chosenObs.photos.length}</div>`;
         }
+
+        let qualification="N/A";
+        if (photo.lbQualification!=null) {
+            qualification=photo.lbQualification;
+        } else {
+            qualification=qualificationLabels.get(photo.cdQualification);
+            if (qualification==="") {
+                console.log("Displaying a photo with a new qualification code! "+photo.cdQualification+" obs id is "+chosenObs.idData);
+            }
+        }
+
         htmlPhotos +=`<div class="mySlides fade">
 										${htmlPhotoNumbers}
 										<div class="toggleMagnify">&#x1F50D;</div>
 										<img ${magnifierId} title="Cliquer dans l'image pour changer de format" src="${photo.inpnFileUri}" style="object-fit: cover;">
-                    <div class="qualification">${photo.lbQualification}</div>
+                    <div class="qualification">${qualification}</div>
                 </div>`;
         cpt++;
     });
@@ -595,16 +623,32 @@ export function showSlides (n) {
 function toggleCoverContain (event) {
     const image = event.target;
     if (image.style.objectFit==="cover") {
-        image.style.objectFit="contain";
+        // Align all the photos with same style for better consistency
+        const slides = document.getElementsByClassName("mySlides");
+        for (const slide of slides) {
+            slide.getElementsByTagName("img")[0].style.objectFit="contain";
+        }
+
         document.querySelectorAll(".numbertext").forEach(number=>{
+            number.style.color="black";
+        });
+        document.querySelectorAll(".qualification").forEach(number=>{
             number.style.color="black";
         });
         document.querySelector(".prev").style.color="black";
         document.querySelector(".next").style.color="black";
         cssVarSet("--arrowsBackColour", "rgba(255,255,255,0.8)");
     } else {
-        image.style.objectFit="cover";
+        // Align all the photos with same style for better consistency
+        const slides = document.getElementsByClassName("mySlides");
+        for (const slide of slides) {
+            slide.getElementsByTagName("img")[0].style.objectFit="cover";
+        }
+
         document.querySelectorAll(".numbertext").forEach(number=>{
+            number.style.color="#f2f2f2";
+        });
+        document.querySelectorAll(".qualification").forEach(number=>{
             number.style.color="#f2f2f2";
         });
         document.querySelector(".prev").style.color="white";

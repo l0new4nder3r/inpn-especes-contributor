@@ -168,6 +168,19 @@
 		cursor: default;
 	}
 
+  .perfect {
+    /* position: relative;
+    top: -195px;
+    padding: 2px;
+    filter: opacity(80%);
+    left: 2px;
+    float: left;
+    cursor: default;
+    font-size: 20px; */
+    left: -44%;
+    position: relative;
+  }
+
 	.progress {
 		font-weight: bold;
 		font-style: italic;
@@ -309,7 +322,7 @@
     font-size: 12px;
     padding: 8px 12px;
     position: absolute;
-    bottom: 5%;
+    bottom: 46.5px;
     cursor: default;
     right: 20px;
     font-style: italic;
@@ -1048,7 +1061,8 @@
   .quest {
     left: 98%;
     position: relative;
-    width: max-content;
+    /* width: max-content; */
+    float: left;
   }
 
   .questLink{

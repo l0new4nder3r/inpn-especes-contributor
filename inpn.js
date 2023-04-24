@@ -789,7 +789,7 @@ function renderObs () {
             let quest = "";
             let questStatus = "No";
             if (obs.questData!=null && obs.questData.idCa!=null) {
-                quest = "<div class=\"quest\" title=\"Soumise dans le cadre d'une quête\">🎯</div>";
+                quest = "<span class=\"quest\" title=\"Soumise dans le cadre d'une quête\">🎯</span>";
                 questStatus = "Yes";
             }
 
@@ -831,12 +831,10 @@ function renderObs () {
                 validLabel=obs.validation.lbStatus;
             }
 
-            // TODO elsewhere ?
-            // obs.photos.forEach(photo => {
-            //     if (photo.cdQualification!==0) {
-            //         console.log("Photo for obs id: "+obs.idData+" has qualification: "+photo.lbQualification+" !");
-            //     }
-            // });
+            let perfect="";
+            if (hasPerfectPic(obs.photos)) {
+                perfect="<span title=\"Contient au moins une photo de qualité parfaite\" class=\"perfect\">✨</div>";
+            }
 
             let commonName="N/A";
             if (obs.identification!=null&&obs.identification.nomVern!=null) {
@@ -859,7 +857,10 @@ function renderObs () {
                               <div class="taxon" title="${obs.identification.groupSimple.lbGroupSimple}">
                                 <span style="font-size: 30px;">${groupesSimplesUnicode.get(obs.identification.groupSimple.cdGroupSimple)}</span>
                               </div>
-                              ${quest}
+                              <div style="display: inline;">
+                                ${perfect}
+                                ${quest}
+                              </div>
                           </div>`;
             html += htmlSegment;
         });
@@ -874,6 +875,18 @@ function renderObs () {
     } else {
         console.error("listObs was undefined, could not render any obs");
     }
+}
+
+function hasPerfectPic (photos) {
+    let hasPerfect=false;
+    for (const photo of photos) {
+        if (photo.cdQualification!=null && photo.cdQualification===1) {
+            hasPerfect=true;
+            // console.log("found perfect picture! "+photo.inpnFileUri);
+            break;
+        }
+    }
+    return hasPerfect;
 }
 
 function isValidationEmpty (observation) {
