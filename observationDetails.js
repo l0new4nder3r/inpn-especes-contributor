@@ -19,7 +19,7 @@ conservationsStatuses.set("NE","Non évalué");
 // For photos qualification - WIP retroengineering
 const qualificationLabels = new Map();
 qualificationLabels.set(0,"Pas de qualification");
-qualificationLabels.set(1,"Image de qualité parfaite");
+qualificationLabels.set(1,"Image de qualité parfaite &#10024;");
 qualificationLabels.set(2,"");
 qualificationLabels.set(3,"");
 qualificationLabels.set(4,"");
@@ -335,13 +335,11 @@ function buildPhotos (chosenObs) {
             htmlPhotoNumbers = `<div class="numbertext">${cpt} / ${chosenObs.photos.length}</div>`;
         }
 
-        let qualification="N/A";
-        if (photo.lbQualification!=null) {
-            qualification=photo.lbQualification;
-        } else {
-            qualification=qualificationLabels.get(photo.cdQualification);
-            if (qualification==="") {
-                console.log("Displaying a photo with a new qualification code! "+photo.cdQualification+" obs id is "+chosenObs.idData);
+        let qualification=qualificationLabels.get(photo.cdQualification);
+        if (qualification==="") {
+            console.log("Displaying a photo with a new qualification code! "+photo.cdQualification+" obs id is "+chosenObs.idData);
+            if (photo.lbQualification!=null) {
+                qualification=photo.lbQualification;
             }
         }
 

@@ -96,15 +96,16 @@ async function loadAll () {
 
     if (latestObs!=null) {
         // console.log("latestObs ok");
+        const loaded = listObservations.observations.length;
         if (totalElements>0 && totalElements>listObservations.observations.length) {
-            Utils.addNotification("success","Succès","Première observation chargée. Nombre total d'observations restant : "+(totalElements-1));
+            Utils.addNotification("success","Succès","Première(s) observation(s) chargée(s).");
         } else {
-            Utils.addNotification("success","Succès","Toutes les "+(totalElements-1)+" observations ont été chargées.");
+            Utils.addNotification("success","Succès","Toutes les "+totalElements+" observations ont été chargées.");
             allDownloaded=true;
             activateUpdateAllButton();
         }
     } else {
-        Utils.addNotification("","Echec","Erreur lors du chargement de la dernière observation");
+        Utils.addNotification("","Echec","Erreur lors du chargement des dernières observations");
     }
 
     // TODO rework errors sometimes? 995 ?
@@ -116,13 +117,16 @@ async function loadAll () {
     // }
     // let pastIds = getFromLocalStorage('ids');
     // if (pastIds!=null) {
+    if (listObservations!=null && totalElements-listObservations.observations.length>0) {
+        Utils.addNotification("info","Information","Nombre total d'observation(s) restante(s) : "+(totalElements-listObservations.observations.length));
+    }
     //     Utils.addNotification("info","Information",pastIds.length+" observations déjà connues sur ce navigateur sont en cours de téléchargement");
     //     startProgressAnimation();
     //     await updateObsFromStorageIds(pastIds);
     //     stopProgressAnimation();
     //     Utils.addNotification("success","Succès",listObservations.observations.length+" observations rechargées");
     // } else {
-    await loadSomeMore();
+    // await loadSomeMore();
     // console.log("more ok");
     activateBtn("loadAll");
     document.getElementById("loadAll").title=`Cliquer ici pour charger toutes les observations de ${currentContributor.pseudo}`;
@@ -137,6 +141,7 @@ async function loadAll () {
 
 async function loadUserId () {
     const queryString = window.location.search;
+    // TODO fix bug! when page loaded from random obs, then change user, gets stuck because of this... :/
     console.log(queryString);
     // ?userId=xxx
     const urlParams = new URLSearchParams(queryString);
@@ -331,7 +336,7 @@ async function loadQuests () {
         }
     }
     const questsByUser = await Utils.callAndWaitForJsonAnswer(urlQuestsByUser, TIMEOUT);
-    if (questsByUser!= null) {
+    if (questsByUser!= null && questsByUser._embedded!=null) {
 
         for (const quest of questsByUser._embedded.quests) {
         // load the matching observations!
@@ -341,9 +346,16 @@ async function loadQuests () {
     }
     // questTotalElements
     if (questTotalElements===loadedQuestData) {
-        console.log("All "+questTotalElements+" quest observations were loaded successfully");
+        if (questTotalElements!==0) {
+            console.log("All "+questTotalElements+" quest observations were loaded successfully");
+            Utils.addNotification("success","Information",questTotalElements+" observations de quêtes ont été chargées avec succès.");
+        } else {
+            console.log("There is no quest observation for this user");
+        }
+
     } else {
         console.error("On "+questTotalElements+" quest observations expected, "+loadedQuestData+" were loaded");
+        Utils.addNotification("","Echec","Sur "+questTotalElements+" observations de quêtes attendues, "+loadedQuestData+" ont pu être chargées.");
     }
     renderObs();
     renderProgress();
@@ -410,13 +422,14 @@ async function getAndAddAllObservations (url) {
         alert("Erreur lors du chargement des observations. Veuillez réessayer ultérieurement");
     } else {
         // preventing duplicates in observations by idData
-        console.log(observation);
+        // console.log(observation);
         if (observation._embedded!=null) {
             observation._embedded.observations.forEach(newObs=>{
                 pushToList(newObs);
             });
         } else {
-            console.error("End of the observations pages?");
+            console.log("End of the observations pages");
+            // TODO rework loop call : this should not be the way to exit the loop
             isLoaded=false;
         }
 
@@ -429,7 +442,7 @@ async function getAndAddAllObservations (url) {
 function pushToList (newObs) {
     if (!listObservations.observations.some(o => o.idData === newObs.idData)) {
         listObservations.observations.push(newObs);
-        console.log("Added obs id "+newObs.idData+" to the list. Size is now "+listObservations.observations.length);
+        // console.log("Added obs id "+newObs.idData+" to the list. Size is now "+listObservations.observations.length);
     } else {
         console.log("No need to add obs id "+newObs.idData+" as it was already present in list");
     }
@@ -530,7 +543,7 @@ async function loadSomeMore () {
                 // rendering
                 await renderObs();
                 // incrementing for next call
-                //index = index+1;
+                index = index+1;
 
             } else {
                 // Error while loading
@@ -902,7 +915,7 @@ export async function changeContributor () {
     const userId = document.getElementById("contributorId").value;
     if (userId!=null && userId>0) {
         console.log("Will attempt to load data for contributor "+userId);
-        if (USER_ID!=null &&USER_ID!==userId) {
+        if (USER_ID!=null && USER_ID!==userId) {
             // testing if exists...
             const contributor = await Utils.callAndWaitForJsonAnswer(inpnUrlBase+"users/"+userId, TIMEOUT);
             if (contributor==null) {
@@ -918,6 +931,7 @@ export async function changeContributor () {
                 reinit();
                 currentContributor=null;
                 // keeping this value for 10 days max
+                // TODO does not work with safari? Lost at reload...?
                 Utils.setCookie("contributorId", userId, 10);
                 loadAll();
             }
@@ -950,6 +964,8 @@ function reinit () {
     index=0;
     document.querySelector(".container").innerHTML = "";
     renderProgress();
+    // TODO fixme dangereux!
+    // window.history.replaceState({}, document.title, "/index.html");
 }
 
 export function sortObs () {
