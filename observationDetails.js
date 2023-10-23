@@ -45,7 +45,7 @@ function findChosenObs (idData) {
     return chosenObs;
 }
 
-export function showDetails (idData, isTouchDevice) {
+export async function showDetails (idData, isTouchDevice) {
     // get current observation
     const chosenObs = findChosenObs(idData);
 
@@ -59,6 +59,16 @@ export function showDetails (idData, isTouchDevice) {
 
     // make some content for "focus" placeholder
     const focus = document.querySelector(".focus");
+
+    // Fixing missing data first
+    if (chosenObs.isCorrected===true) {
+        // https://inpn.mnhn.fr/inpn-especes/data/892082
+        // const obsDetailsUrl = `${inpnUrlBase}data/${chosenObs.idData}`;
+        const obsDetails = await getCorrectedDetails(chosenObs);
+        if (obsDetails!= null && obsDetails.taxonOrigin!= null && obsDetails.taxonOrigin.nomCompletNonHtml !== "") {
+            chosenObs.taxonOrigin = obsDetails.taxonOrigin;
+        }
+    }
 
     initObservationContent(chosenObs, focus);
 
@@ -210,6 +220,11 @@ export async function addProtectionStatus (referenceCode) {
     }
 }
 
+async function getCorrectedDetails (chosenObs) {
+    const obsDetailsUrl = `${inpnUrlBase}data/${chosenObs.idData}`;
+    return await Utils.callAndWaitForJsonAnswer(obsDetailsUrl, TIMEOUT);
+}
+
 function buildInfos (chosenObs) {
 
     let validated = "";
@@ -260,14 +275,31 @@ function buildInfos (chosenObs) {
     }
 
     let correctedName = "";
-    if (chosenObs.isCorrected===true && chosenObs.identification.nomCompletNonHtml!=="") {
-        correctedName=`<a class="corrected" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.identification.nomCompletNonHtml}" target="_blank">
-					${chosenObs.identification.nomCompletNonHtml}</a>`;
+    // TODO KO avec API du moment, pas renseigné... alors que data 1 par 1 avec autre API
+    // if (chosenObs.isCorrected===true && chosenObs.taxonOrigin.nomCompletNonHtml !== "") {
+    //     correctedName=`<a class="corrected" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.taxonOrigin.cdNom}" target="_blank">
+    // 			${chosenObs.taxonOrigin.nomCompletNonHtml}</a>`;
+    // }
+
+    if (chosenObs.isCorrected===true) {
+        // https://inpn.mnhn.fr/inpn-especes/data/892082
+        // const obsDetailsUrl = `${inpnUrlBase}data/${chosenObs.idData}`;
+        // const obsDetails = await getCorrectedDetails(chosenObs);
+        // if (obsDetails!= null && obsDetails.taxonOrigin!= null && obsDetails.taxonOrigin.nomCompletNonHtml !== "") {
+        //     correctedName=`<a class="corrected" href="https://inpn.mnhn.fr/espece/cd_nom/${obsDetails.taxonOrigin.cdNom}" target="_blank">
+        //   ${obsDetails.taxonOrigin.nomCompletNonHtml}</a>`;
+        // }
+        if (chosenObs.isCorrected===true && chosenObs.taxonOrigin.nomCompletNonHtml !== "") {
+            correctedName=`<a class="corrected" href="https://inpn.mnhn.fr/espece/cd_nom/${chosenObs.taxonOrigin.cdNom}" target="_blank">
+        			${chosenObs.taxonOrigin.nomCompletNonHtml}</a>`;
+        }
     }
 
     let statusComment="";
     if (chosenObs.validation!=null && chosenObs.validation.statusComment!=null) {
         statusComment=`<div class="statusComment">${chosenObs.validation.statusComment}</div>`;
+    } else if (chosenObs.validation!=null && chosenObs.validation.commentValidation!=null) {
+        statusComment=`<div class="statusComment">${chosenObs.validation.commentValidation}</div>`;
     }
 
     const creationDate = new Date(chosenObs.dateCrea).toLocaleString();

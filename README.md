@@ -48,6 +48,11 @@ Il est aussi possible d'afficher une autre observation "au hasard" par une icôn
 
 ## Travail en cours, choses à faire
 
+* Mettre à jour ce fichier périmé
+* corriger les bugs:
+  * obs en statut init = date en 1970
+  * mise à jour impossible ou non affichée une fois l'obs en init validée
+
 ### Revoir et améliorer l'interface
 
 #### Responsiveness

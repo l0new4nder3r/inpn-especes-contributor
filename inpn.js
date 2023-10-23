@@ -316,18 +316,28 @@ async function loadContributor () {
 ****/
 
 async function loadQuests () {
+
+    // KO because will not get all quests data...
+    // TODO for now: call this https://inpn.mnhn.fr/inpn-especes/quetes
+    // TODO after : iterate pages until exhausted! make a generic method...
+    // Then foreach quest id, call and add all...
+    const urlQuests=inpnUrlBase+"quetes?size=100&page=0";
+    console.log("loading ALL quests data from: "+urlQuests);
+
+
     // let's get the quest list
     // https://inpn.mnhn.fr/inpn-especes/quetes/users/20784?size=50&page=0
-    const urlQuestsByUser=inpnUrlBase+"quetes/users/"+USER_ID+"?size=50&page=0";
-    console.log("loading quests for current user from: "+urlQuestsByUser);
+    // const urlQuestsByUser=inpnUrlBase+"quetes/users/"+USER_ID+"?size=50&page=0";
+    // console.log("loading quests for current user from: "+urlQuestsByUser);
     let loadedQuestData=0;
 
     async function loadQuestData (id) {
+
         // TODO make it loop and load all across pages!
         // https://inpn.mnhn.fr/inpn-especes/data/quetes/36854?page=0&size=24&sort=-dateValidated&userIds=20784
         const urlQuestDataByUserAndQuestId="https://inpn.mnhn.fr/inpn-especes/data/quetes/"+id+"?page=0&size=100&sort=-dateValidated&userIds="+USER_ID;
         const questData = await Utils.callAndWaitForJsonAnswer(urlQuestDataByUserAndQuestId, TIMEOUT);
-        if (questData!=null) {
+        if (questData!=null && questData._embedded!= null && questData._embedded.observations!= null) {
             const currentQuestObservations = questData._embedded.observations;
             currentQuestObservations.forEach(questObs => {
                 pushToList(questObs);
@@ -335,10 +345,11 @@ async function loadQuests () {
             });
         }
     }
-    const questsByUser = await Utils.callAndWaitForJsonAnswer(urlQuestsByUser, TIMEOUT);
-    if (questsByUser!= null && questsByUser._embedded!=null) {
+    // todo rename without "byuser"
+    const quests = await Utils.callAndWaitForJsonAnswer(urlQuests, TIMEOUT);
+    if (quests!= null && quests._embedded!=null) {
 
-        for (const quest of questsByUser._embedded.quests) {
+        for (const quest of quests._embedded.quests) {
         // load the matching observations!
             const id = quest.idCa;
             await loadQuestData(id);
@@ -795,7 +806,7 @@ function renderObs () {
             const creationTime = new Date(obs.dateCrea).toLocaleTimeString("fr-FR");
 
             let modificationDateTime="N/A";
-            if (obs.dateModif!=="") {
+            if (obs.dateModif!=="" && obs.dateModif!= null) {
                 modificationDateTime = new Date(obs.dateModif).toLocaleDateString("fr-FR") +" à "+ new Date(obs.dateModif).toLocaleTimeString("fr-FR");
             }
 
@@ -1071,13 +1082,15 @@ export async function updateObservations () {
     console.log("Called "+callCpt+" times the update for non validated observations, made "+updatedCpt+" changes to current list");
 
     // One call to get a refreshed totLines - if matching, we have all. If not, need to loadLoop until done...
-    const urlLatestObservation=inpnUrlBase+"data/validation?page=1&size=1&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
+    const urlLatestObservation=inpnUrlBase+"data/validation?page=0&size=1&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
 
     const embeddedObservations = await Utils.callAndWaitForJsonAnswer(urlLatestObservation, TIMEOUT);
-    const observation = embeddedObservations._embedded;
+    const observation = embeddedObservations._embedded.observations[0];
     if (observation!=null) {
         latestObs = observation;
         // TODO FIX other totalElements? Where from?
+        // TODO also call user profile to guess quests data? then compute diff?
+        // And if needed recall quests or other data?
         const diff = totalElements-listObservations.totLines;
         console.log("latestObs up to date. "+diff+" new obs to load");
         if (diff>0) {
