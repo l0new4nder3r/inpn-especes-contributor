@@ -321,7 +321,7 @@ async function loadQuests () {
     // TODO for now: call this https://inpn.mnhn.fr/inpn-especes/quetes
     // TODO after : iterate pages until exhausted! make a generic method...
     // Then foreach quest id, call and add all...
-    const urlQuests=inpnUrlBase+"quetes?size=100&page=0";
+    const urlQuests=inpnUrlBase+"quetes?size=1000&page=0";
     console.log("loading ALL quests data from: "+urlQuests);
 
 
