@@ -46,7 +46,8 @@ export async function buildStats () {
 }
 
 async function getRankInfo (urlRank) {
-    const rankInfo = await callAndWaitForJsonAnswer(urlRank, TIMEOUT);
+    // takes longer to get this, increasing up to 1 min
+    const rankInfo = await callAndWaitForJsonAnswer(urlRank, TIMEOUT*2);
     if (rankInfo==null) {
         alert("Erreur lors du chargement du nombre de personnes. Veuillez réessayer ultérieurement");
     }
