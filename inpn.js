@@ -34,6 +34,10 @@ let areFiltersDisplayed = false;
 let areSortersDisplayed = false;
 // Timout constant for API calls
 export const TIMEOUT = 30000;
+
+// default qty of observations to fetch in each loop
+const OBS_FETCH_SIZE = 100;
+
 const isTouchDevice = Utils.isMobileDevice ();
 // Are all obs downloaded?
 let allDownloaded = false;
@@ -335,7 +339,7 @@ async function loadQuests () {
 
         // TODO make it loop and load all across pages!
         // https://inpn.mnhn.fr/inpn-especes/data/quetes/36854?page=0&size=24&sort=-dateValidated&userIds=20784
-        const urlQuestDataByUserAndQuestId="https://inpn.mnhn.fr/inpn-especes/data/quetes/"+id+"?page=0&size=100&sort=-dateValidated&userIds="+USER_ID;
+        const urlQuestDataByUserAndQuestId="https://inpn.mnhn.fr/inpn-especes/data/quetes/"+id+"?page=0&size="+OBS_FETCH_SIZE+"&sort=-dateValidated&userIds="+USER_ID;
         const questData = await Utils.callAndWaitForJsonAnswer(urlQuestDataByUserAndQuestId, TIMEOUT);
         if (questData!=null && questData._embedded!= null && questData._embedded.observations!= null) {
             const currentQuestObservations = questData._embedded.observations;
@@ -375,7 +379,7 @@ async function loadQuests () {
 
 async function loadLatestObs () {
     //url to load latest observation
-    const urlLatestObservation=inpnUrlBase+"data/validation?page=0&size=24&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
+    const urlLatestObservation=inpnUrlBase+"data/validation?page=0&size="+OBS_FETCH_SIZE+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
     console.log("loading latest obs from: "+urlLatestObservation);
 
     async function renderLatestObs () {
@@ -495,7 +499,7 @@ export async function loopLoading () {
                         //     paginEnd=totalElements;
                         // }
                         const paginStart = index+1;
-                        const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+24+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
+                        const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+OBS_FETCH_SIZE+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
                         console.log("loop : loading obs from "+obsUrl);
 
                         if (await getAndAddAllObservations(obsUrl)) {
@@ -547,7 +551,7 @@ async function loadSomeMore () {
             // if (paginEnd>opportunisticTotalElements) {
             //     paginEnd=opportunisticTotalElements;
             // }
-            const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+24+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
+            const obsUrl=inpnUrlBase+"data/validation?page="+paginStart+"&size="+OBS_FETCH_SIZE+"&dateType=datePublished&order=-&sort=-dateValidated&project=INPN_ESPECES&userIds="+USER_ID;
             console.log("loadMore : loading obs from "+obsUrl);
 
             if (await getAndAddAllObservations(obsUrl)) {
