@@ -1287,8 +1287,8 @@ function sortByPoints (observations) {
     // console.log("Ordering observations...");
     if (observations!=null) {
         observations.sort(function (a,b) {
-            const pointsA = a.scoreTotal;
-            const pointsB = b.scoreTotal;
+            const pointsA = a.score;
+            const pointsB = b.score;
             if (pointsA>pointsB) {
                 return -1;
             } else if (pointsA<pointsB) {
