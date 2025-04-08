@@ -190,6 +190,8 @@ function initListeners () {
     document.getElementById("6").addEventListener("change", filterObsStatus);
     document.getElementById("No").addEventListener("change", filterObsQuest);
     document.getElementById("Yes").addEventListener("change", filterObsQuest);
+    document.getElementById("perfect").addEventListener("change", filterObsQuality);
+    document.getElementById("average").addEventListener("change", filterObsQuality);
     document.querySelector("#allStat").addEventListener("click", allStat);
     document.querySelector("#noneStat").addEventListener("click", noneStat);
     document.getElementById("dateModif").addEventListener("change", sortObs);
@@ -860,7 +862,9 @@ function renderObs () {
             }
 
             let perfect="";
+            let hasPerfect="average";
             if (hasPerfectPic(obs.photos)) {
+                hasPerfect="perfect";
                 perfect="<span title=\"Contient au moins une photo de qualité parfaite\" class=\"perfect\">✨</div>";
             }
 
@@ -869,7 +873,7 @@ function renderObs () {
                 commonName=obs.identification.nomVern;
             }
 
-            const htmlSegment = `<div id="${obs.idData}" class="obs status${validStatus} go${obs.identification.groupSimple.cdGroupSimple} quests${questStatus}" ${filtered}>
+            const htmlSegment = `<div id="${obs.idData}" class="obs status${validStatus} go${obs.identification.groupSimple.cdGroupSimple} quests${questStatus} quality${hasPerfect}" ${filtered}>
                               <img src="${obs.photos[0].thumbnailFileUri}" >
                               <div class="score">${Utils.valueOrZero(obs.score)} pts</div>
                               <div title="${commonName}" class="details">
@@ -1147,7 +1151,7 @@ function stopProgressAnimation () {
 }
 
 function toggleAllNoneButtonsByFamily (prefix) {
-    if (prefix!=="quests") {
+    if (prefix!=="quests" && prefix !=="quality") {
     // check if we need to desactivate buttons
         const checkboxes= document.querySelectorAll("."+prefix);
         let areAllOn = true;
@@ -1323,6 +1327,10 @@ function filterObsQuest (event) {
     filterObs("quests",event.target);
 }
 
+function filterObsQuality () {
+    filterObs("quality", event.target);
+}
+
 function filterObs (prefix,checkbox) {
 
     // elements by class with matching code
@@ -1333,15 +1341,16 @@ function filterObs (prefix,checkbox) {
         allWithClassName.forEach(div=>{
             // get other class values and verify not unchecked!
 
-            // we need 3 matches to display!
+            // we need 4 matches to display
             let goCheck;
             let statusCheck;
             let questCheck;
+            let perfectQualityCheck;
 
             // for each class in this observation div...
             div.classList.forEach(val=>{
-                // we need to know the checked status of the 3 matching checkboxes for current obs
-                // let's get the 2 missing checkboxes' ids
+                // we need to know the checked status of the 4 matching checkboxes for current obs
+                // let's get the 3 missing checkboxes' ids
                 if (val!=="obs") {
 
                     if (val.includes("status")) {
@@ -1365,11 +1374,18 @@ function filterObs (prefix,checkbox) {
                         } else {
                             questCheck = true;
                         }
+                    } else if (val.includes("quality")) {
+                        if (prefix!=="quality") {
+                            const checkPerfectId = val.match("quality([A-Za-z]{7})")[1];
+                            perfectQualityCheck = document.getElementById(checkPerfectId).checked;
+                        } else {
+                            perfectQualityCheck = true;
+                        }
                     }
                 }
             });
             // only display if the 3 checkboxes are checked
-            if (goCheck && statusCheck && questCheck) {
+            if (goCheck && statusCheck && questCheck && perfectQualityCheck) {
                 div.style.display="initial";
             }
         });
