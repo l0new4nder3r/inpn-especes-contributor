@@ -113,7 +113,11 @@ async function getValidRandomObservationId () {
     while (observationId==null) {
         // get a random number between one and a million
         // TODO : quickly get the max id from current apis?
-        const randomId = getRandomInt(1,1000000);
+        // Not quick but reliable? 4 sec
+        // https://inpn.mnhn.fr/inpn-especes/data/observations?page=0&size=1&order=-&sort=-datePublished
+        // _embedded.observations[0].idData = max id maintenant
+
+        const randomId = getRandomInt(1,1620000);
 
         // test if it matches an existing observation
         if (await exists(randomId)) {

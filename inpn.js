@@ -339,7 +339,7 @@ async function loadQuests () {
 
     async function loadQuestData (id) {
 
-        // TODO make it loop and load all across pages!
+        // loop and load all across pages!
         // https://inpn.mnhn.fr/inpn-especes/data/quetes/36854?page=0&size=24&sort=-dateValidated&userIds=20784
         const urlQuestDataByUserAndQuestId="https://inpn.mnhn.fr/inpn-especes/data/quetes/"+id+"?page=0&size="+OBS_FETCH_SIZE+"&sort=-dateValidated&userIds="+USER_ID;
         const questData = await Utils.callAndWaitForJsonAnswer(urlQuestDataByUserAndQuestId, TIMEOUT);
@@ -351,7 +351,7 @@ async function loadQuests () {
             });
         }
     }
-    // todo rename without "byuser"
+
     const quests = await Utils.callAndWaitForJsonAnswer(urlQuests, TIMEOUT);
     if (quests!= null && quests._embedded!=null) {
 
@@ -394,8 +394,6 @@ async function loadLatestObs () {
             console.log("latestObs is set!");
             console.log(latestObs);
             listObservations = observations;
-            // TODO FIXME! not the right totalElements value
-            //totalElements=embeddedObservations.page.totalElements;
             opportunisticTotalElements=embeddedObservations.page.totalElements;
             console.log("Nombre d'observations opportunistes à charger "+opportunisticTotalElements);
             questTotalElements=totalElements-opportunisticTotalElements;
@@ -1005,14 +1003,16 @@ export async function getOneObservation (id) {
 
 // Compares two observations by their dateModif property
 function compareStringDatesModif (a,b) {
+    // TODO control that this fixes the following issue :
+    // Obs with 0 pts (b.dateModif == null) would never get updated while using this method
     if (a.dateModif==="" && b.dateModif==="") {
         return 0;
     } else if (a.dateModif==null && b.dateModif==null) {
         return 0;
     } else if (a.dateModif==="" || a.dateModif==null) {
-        return -1;
-    } else if (b.dateModif==="" || b.dateModif==null) {
         return 1;
+    } else if (b.dateModif==="" || b.dateModif==null) {
+        return -1;
     } else {
         const dateA = new Date(a.dateModif);
         const dateB = new Date(b.dateModif);
@@ -1096,9 +1096,6 @@ export async function updateObservations () {
     const observation = embeddedObservations._embedded.observations[0];
     if (observation!=null) {
         latestObs = observation;
-        // TODO FIX other totalElements? Where from?
-        // TODO also call user profile to guess quests data? then compute diff?
-        // And if needed recall quests or other data?
         const diff = totalElements-listObservations.totLines;
         console.log("latestObs up to date. "+diff+" new obs to load");
         if (diff>0) {

@@ -41,20 +41,40 @@ const noLegendOptions= {
 let contributorsTotal;
 
 export async function buildStats () {
+    // build pop-in structure
     await showStats();
-    await makeGraphs();
+
+    // build graphs
+    await plotGraphs();
+
+    // load contributor rank
+    if (contributorsTotal==null) {
+        // https://inpn.mnhn.fr/inpn-especes/scores?page=0&size=1
+        const urlRank=inpnUrlBase+"scores?page=0&size=1";
+        console.log("loading rank info from: "+urlRank);
+        // differed rendering of this when call has succeeded
+        await getRankInfo(urlRank);
+    } else {
+        document.getElementById("rank").innerHTML=document.getElementById("rank").innerHTML.replace("???",contributorsTotal);
+    }
+
+    // removing loading text info, special cursor
+    document.getElementById("loadingText").innerHTML="";
+    document.querySelector(".stats").style.cursor="unset";
 }
 
 async function getRankInfo (urlRank) {
     // takes longer to get this, increasing up to 1 min
     const rankInfo = await callAndWaitForJsonAnswer(urlRank, TIMEOUT*2);
     if (rankInfo==null) {
-        alert("Erreur lors du chargement du nombre de personnes. Veuillez réessayer ultérieurement");
+        alert("Erreur lors du chargement du nombre total de contributeur·rice·s. Veuillez réessayer ultérieurement");
+    } else {
+        contributorsTotal = rankInfo.page.totalElements;
+        document.getElementById("rank").innerHTML=document.getElementById("rank").innerHTML.replace("???",contributorsTotal);
     }
-    contributorsTotal = rankInfo.page.totalElements;
 }
 
-async function showStats () {
+function showStats () {
 
     if (USER_ID!=null && latestObs!=null && listObservations != null && currentContributor!=null && totalElements!= null) {
         // make some content for "stats" placeholder
@@ -87,6 +107,9 @@ async function showStats () {
             document.querySelector(".statsIntro").innerHTML += `<p>Attention, toutes les observations de cette personne n'ont pas été chargées.</p>
 							<p>Certaines statistiques pourraient perdre de leur pertinence!</p>`;
         }
+
+        // explain we are in the process of loading / computing some stuff
+        document.querySelector(".statsIntro").innerHTML += "<p id=\"loadingText\" style=\"font-weight: bold;font-size: large;\">Chargement en cours, veuillez patienter</p>";
 
         // score moyen, min ,max
         let averageGlobal=0;
@@ -136,15 +159,7 @@ async function showStats () {
 												<p>Score maximum${asterisk} : ${max} points</p>
 												${globalAverageScore}`;
 
-        /* rang contributeur  */
-        if (contributorsTotal==null) {
-            // https://inpn.mnhn.fr/inpn-especes/scores?page=0&size=1
-            const urlRank=inpnUrlBase+"scores?page=0&size=1";
-            console.log("loading rank info from: "+urlRank);
-            await getRankInfo(urlRank);
-        }
-
-        leftStatsContents.innerHTML+=`<p>Rang : ${currentContributor._embedded.scores.rank}<sup>e</sup> sur ${contributorsTotal} contributeurs&middot;trices</p>`;
+        leftStatsContents.innerHTML+=`<p id="rank">Rang : ${currentContributor._embedded.scores.rank}<sup>e</sup> sur ??? contributeurs&middot;trices</p>`;
 
         /* nombre validés mais corrigés */
         let corrected = 0;
@@ -176,6 +191,10 @@ async function showStats () {
             }
         });
         leftStatsContents.innerHTML+=`<p class="quests">Observations${asterisk} soumises dans le cadre de quêtes : ${quests}</p>`;
+
+        /* favorites species (most shared) */
+        computeMostFavoritedSpecies(leftStatsContents);
+
         if (!isAllLoaded) {
             leftStatsContents.innerHTML+=`<p class="statsLegend">${asterisk} Sur les ${listObservations.observations.length} observations chargées</p>`;
         }
@@ -214,8 +233,6 @@ async function showStats () {
         /* graphique propositions espèces dans le temps */
         downStatsContents.innerHTML+=buildCanvas("speciesPropositionInTimeCanvas",`Propositions et corrections d'espèces${asterisk} dans le temps`);
         downStatsContents.innerHTML+="<br/>";
-
-        stats.style.cursor="unset";
     } else {
         console.warn("Nothing loaded, no stats to show");
     }
@@ -229,7 +246,6 @@ function buildCanvas (id,title) {
 }
 
 function hideStats () {
-
     // hiding the "focus" part
     const stats = document.querySelector(".stats");
     stats.style.visibility="collapse";
@@ -239,7 +255,50 @@ function hideStats () {
     unblurBackground();
 }
 
-async function makeGraphs () {
+function computeMostFavoritedSpecies (leftStatsContents) {
+    const amountBySpecieMap=new Map();
+
+    listObservations.observations.forEach(obs => {
+        // only taking validated observations into account
+        if (obs.isValidated===true && obs.identification!= null) {
+            // TODO better checks
+            let currentSpecie;
+            if (obs.identification.nomVern!=null) {
+                currentSpecie=obs.identification.nomVern;
+            } else if (obs.identification.nomCompletNonHtml!=null) {
+                currentSpecie=obs.identification.nomCompletNonHtml;
+            }
+
+            const previousAmount = amountBySpecieMap.get(currentSpecie);
+            let currentAmount;
+            if (previousAmount==null) {
+                currentAmount=0;
+            } else {
+                currentAmount=previousAmount;
+            }
+            amountBySpecieMap.set(currentSpecie, currentAmount+1);
+        }
+    });
+    // sort by amount desc, iterate on 10 first
+    const amountBySpecieSortedMap = new Map([...amountBySpecieMap.entries()].sort((a, b) => b[1] - a[1]));
+    // console.log(amountBySpecieSortedMap);
+    const mapIter = amountBySpecieSortedMap[Symbol.iterator]();
+    let listTopSpecies="";
+    for (let i = 0; i < 10; i++) {
+        //console.log(mapIter.next());
+        //console.log(i + ": " + mapIter.next().value);
+        listTopSpecies+="<li>"+mapIter.next().value[0]+" - "+mapIter.next().value[1]+"</li>";
+    }
+
+    const favSpecies =`<div>
+    <p>Espèces les plus partagées :</p>
+      <ul>`+listTopSpecies+
+      `</ul>
+    </div>`;
+    leftStatsContents.innerHTML+=favSpecies;
+}
+
+async function plotGraphs () {
     // status
     await buildStatusGraph();
     // scores
@@ -429,7 +488,7 @@ function buildPropositionsGraph () {
     const successRateList = new Array();
     const observationsPerMonthMap=new Map();
 
-    // TODO 2 échelles
+    // 2 échelles
     // propositions espèces : échelle à gauche (mettre en proportion des obs envoyées?!) en bleu
     // proportion d'erreurs, plutôt que de réussite ! en rouge courbe discontinue, échelle à droite
 
